@@ -1,35 +1,45 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+pub struct Vec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Vec3 {
-    fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
-    fn norm2(&self) -> f32 {
+    pub fn norm2(&self) -> f32 {
         self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0)
     }
 
-    fn norm(&self) -> f32 {
+    pub fn norm(&self) -> f32 {
         self.norm2().sqrt()
     }
 
-    fn normalize(&mut self) {
+    pub fn normal(&self) -> Self {
+        let norm = self.norm();
+
+        Self {
+            x: self.x / norm,
+            y: self.y / norm,
+            z: self.z / norm,
+        }
+    }
+
+    pub fn normalize(&mut self) {
         let norm = self.norm();
         self.x /= norm;
         self.y /= norm;
         self.z /= norm;
     }
 
-    fn dot(&self, other: Self) -> f32 {
+    pub fn dot(&self, other: Self) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    fn cross(&self, other: Self) -> Self {
+    pub fn cross(&self, other: Self) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
@@ -150,6 +160,14 @@ mod test {
         v.normalize();
 
         assert_relative_eq!(1.0_f32, v.norm());
+    }
+
+    #[test]
+    fn normal() {
+        let v = Vec3::new(1.0, 1.0, 1.0);
+
+        let component: f32 = 1.0 / (3.0_f32.sqrt());
+        assert_eq!(Vec3::new(component, component, component), v.normal());
     }
 
     #[test]
