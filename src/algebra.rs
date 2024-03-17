@@ -55,7 +55,19 @@ impl std::ops::Add for Vec3 {
         Self::Output {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
-            z: self.x + rhs.z,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
+impl<'a, 'b> std::ops::Add<&'b Vec3> for &'a Vec3 {
+    type Output = Vec3;
+
+    fn add(self, rhs: &'b Vec3) -> Self::Output {
+        Self::Output {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
         }
     }
 }
@@ -67,7 +79,19 @@ impl std::ops::Sub for Vec3 {
         Self::Output {
             x: self.x - rhs.x,
             y: self.y - rhs.y,
-            z: self.x - rhs.z,
+            z: self.z - rhs.z,
+        }
+    }
+}
+
+impl<'a, 'b> std::ops::Sub<&'b Vec3> for &'a Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: &'b Vec3) -> Self::Output {
+        Self::Output {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
         }
     }
 }
@@ -117,7 +141,13 @@ pub fn solve_deg2_eq(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
         let sqrt_discriminant = discriminant.sqrt();
         let x1 = (-b + sqrt_discriminant) / (2.0 * a);
         let x2 = (-b - sqrt_discriminant) / (2.0 * a);
-        return Some((x1, x2));
+
+        // Sort solutions
+        if x1 <= x2 {
+            return Some((x1, x2));
+        } else {
+            return Some((x2, x1));
+        }
     } else if discriminant == 0.0 {
         let x = -b / (2.0 * a);
         return Some((x, x));

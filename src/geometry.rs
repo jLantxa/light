@@ -1,9 +1,22 @@
-use crate::algebra::Vec3;
+use crate::algebra::{self, Vec3};
 use crate::light::Ray;
 
 pub trait Intersectable {
-    fn intersect(&self, ray: &Ray) -> f32;
-    fn intersection_normal(&self, intesection_point: &Vec3) -> Vec3;
+    fn intersect(&self, ray: &Ray) -> Option<f32>;
+    fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3;
+}
+
+fn closest_sol((x1, x2): (f32, f32)) -> Option<f32> {
+    // Assume x1 <= x2
+    if x1 < 0.0 {
+        if x2 < 0.0 {
+            None
+        } else {
+            Some(x2)
+        }
+    } else {
+        Some(x1)
+    }
 }
 
 pub struct Sphere {
@@ -12,20 +25,79 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    fn new(center: Vec3, radius: f32) -> Self {
+    pub fn new(center: Vec3, radius: f32) -> Self {
         Self { center, radius }
     }
 
-    fn center(&self) -> Vec3 {
+    pub fn center(&self) -> Vec3 {
         self.center
     }
 
-    fn radius(&self) -> f32 {
+    pub fn radius(&self) -> f32 {
         self.radius
+    }
+}
+
+impl Intersectable for Sphere {
+    fn intersect(&self, ray: &Ray) -> Option<f32> {
+        let oc: Vec3 = ray.origin() - self.center;
+        let d: Vec3 = ray.direction();
+
+        let a: f32 = d.norm().powf(2.0);
+        let b: f32 = 2.0 * oc.dot(d);
+        let c: f32 = oc.norm().powf(2.0) - self.radius.powf(2.0);
+
+        let solutions = algebra::solve_deg2_eq(a, b, c);
+
+        match solutions {
+            None => None,
+            Some(sols) => closest_sol(sols),
+        }
+    }
+
+    fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3 {
+        // -(d*n)n / |(d*n)n|
+        let surf_normal = &self.center - intersection;
+        (direction.dot(surf_normal) * surf_normal).normal()
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn intersect_sphere() {
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0));
+
+        let t = sphere.intersect(&ray).unwrap();
+        let intersection = ray.point_at(t);
+        let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
+
+        assert_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
+        assert_eq!(Vec3::new(0.0, 0.0, -1.0), hit_normal);
+    }
+
+    #[test]
+    fn intersect_from_inside_sphere() {
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+
+        let t = sphere.intersect(&ray).unwrap();
+        let intersection = ray.point_at(t);
+        let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
+
+        assert_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
+        assert_eq!(Vec3::new(0.0, 0.0, 1.0), hit_normal);
+    }
+
+    #[test]
+    fn no_intersect_behind_sphere() {
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0));
+
+        let t = sphere.intersect(&ray);
+        assert_eq!(t, None);
+    }
 }
