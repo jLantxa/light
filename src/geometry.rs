@@ -25,16 +25,16 @@ pub trait Intersectable {
     fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3;
 }
 
-fn closest_sol((x1, x2): (f32, f32)) -> Option<f32> {
-    // Assume x1 <= x2
-    if x1 < 0.0 {
-        if x2 < 0.0 {
-            None
-        } else {
-            Some(x2)
-        }
+/// Returns the closest positive distance (facing the direction of a Ray)
+fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
+    assert!(t1 <= t2);
+
+    if t1 >= 0.0 {
+        Some(t1)
+    } else if t2 >= 0.0 {
+        Some(t2)
     } else {
-        Some(x1)
+        None
     }
 }
 
@@ -70,7 +70,7 @@ impl Intersectable for Sphere {
 
         match solutions {
             None => None,
-            Some(sols) => closest_sol(sols),
+            Some(sols) => closest_facing_solution(sols),
         }
     }
 
@@ -84,6 +84,15 @@ impl Intersectable for Sphere {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn closest_sol() {
+        assert_eq!(Some(1.0), closest_facing_solution((1.0, 2.0)));
+        assert_eq!(Some(2.0), closest_facing_solution((-1.0, 2.0)));
+        assert_eq!(Some(0.0), closest_facing_solution((-1.0, 0.0)));
+        assert_eq!(Some(0.0), closest_facing_solution((0.0, 0.0)));
+        assert_eq!(None, closest_facing_solution((-2.0, -1.0)));
+    }
 
     #[test]
     fn intersect_sphere() {
