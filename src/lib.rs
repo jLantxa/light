@@ -1,2 +1,3 @@
-mod ray;
-mod vec3;
+mod algebra;
+mod geometry;
+mod light;
