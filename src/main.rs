@@ -18,6 +18,7 @@
 */
 
 mod algebra;
+mod camera;
 mod geometry;
 mod light;
 
