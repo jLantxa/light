@@ -154,24 +154,33 @@ impl std::ops::Neg for Vec3 {
 }
 
 pub fn solve_deg2_eq(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
-    let discriminant: f32 = (b * b) - (4.0 * a * c);
+    if a != 0.0 {
+        let discriminant: f32 = (b * b) - (4.0 * a * c);
 
-    if discriminant > 0.0 {
-        let sqrt_discriminant = discriminant.sqrt();
-        let x1 = (-b + sqrt_discriminant) / (2.0 * a);
-        let x2 = (-b - sqrt_discriminant) / (2.0 * a);
+        if discriminant > 0.0 {
+            let sqrt_discriminant = discriminant.sqrt();
+            let x1 = (-b + sqrt_discriminant) / (2.0 * a);
+            let x2 = (-b - sqrt_discriminant) / (2.0 * a);
 
-        // Sort solutions
-        if x1 <= x2 {
-            return Some((x1, x2));
+            // Sort solutions
+            if x1 <= x2 {
+                return Some((x1, x2));
+            } else {
+                return Some((x2, x1));
+            }
+        } else if discriminant == 0.0 {
+            let x = -b / (2.0 * a);
+            return Some((x, x));
         } else {
-            return Some((x2, x1));
+            return None;
         }
-    } else if discriminant == 0.0 {
-        let x = -b / (2.0 * a);
-        return Some((x, x));
     } else {
-        return None;
+        if b != 0.0 {
+            let x = -c / b;
+            return Some((x, x));
+        } else {
+            return None;
+        }
     }
 }
 
@@ -277,24 +286,35 @@ mod tests {
     }
 
     #[test]
-    fn deg2_eq_two_solutions() {
+    fn deg2_eq_solutions() {
         let (a, b, c) = (-1.0, 2.0, 3.0);
         let solutions = solve_deg2_eq(a, b, c);
-        assert_eq!(-1.0_f32, solutions.unwrap().0);
-        assert_eq!(3.0_f32, solutions.unwrap().1);
-    }
+        assert_eq!(Some((-1.0, 3.0)), solutions);
 
-    #[test]
-    fn deg2_eq_one_solution() {
+        let (a, b, c) = (1.0, 1.0, 0.0);
+        let solutions = solve_deg2_eq(a, b, c);
+        assert_eq!(Some((-1.0, 0.0)), solutions);
+
+        let (a, b, c) = (2.0, 2.0, 0.0);
+        let solutions = solve_deg2_eq(a, b, c);
+        assert_eq!(Some((-1.0, 0.0)), solutions);
+
+        let (a, b, c) = (0.0, 1.0, 2.0);
+        let solutions = solve_deg2_eq(a, b, c);
+        assert_eq!(Some((-2.0, -2.0)), solutions);
+
+        let (a, b, c) = (0.0, 0.0, 2.0);
+        let solutions = solve_deg2_eq(a, b, c);
+        assert_eq!(None, solutions);
+
+        let (a, b, c) = (1.0, 0.0, -1.0);
+        let solutions = solve_deg2_eq(a, b, c);
+        assert_eq!(Some((-1.0, 1.0)), solutions);
+
         let (a, b, c) = (1.0, 2.0, 1.0);
         let solutions = solve_deg2_eq(a, b, c);
-        assert_eq!(-1.0_f32, solutions.unwrap().0);
-        assert_eq!(-1.0_f32, solutions.unwrap().1);
-        assert_eq!(solutions.unwrap().0, solutions.unwrap().1);
-    }
+        assert_eq!(Some((-1.0, -1.0)), solutions);
 
-    #[test]
-    fn deg2_eq_no_solutions() {
         let (a, b, c) = (1.0, 2.0, 3.0);
         let solutions = solve_deg2_eq(a, b, c);
         assert_eq!(None, solutions);
