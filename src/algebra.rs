@@ -194,16 +194,16 @@ mod tests {
 
         #[test]
         fn add() {
-            let v1 = Vec3::new(1.0, 1.0, 1.0);
-            let v2 = Vec3::new(-1.0, 2.0, -3.0);
-            assert_eq!(Vec3::new(0.0, 3.0, -2.0), v1 + v2);
+            let v1 = Vec3::new(10.0, 15.0, 20.0);
+            let v2 = Vec3::new(-1.0, 2.0, -2.0);
+            assert_eq!(Vec3::new(9.0, 17.0, 18.0), v1 + v2);
         }
 
         #[test]
         fn sub() {
-            let v1 = Vec3::new(1.0, 1.0, 1.0);
+            let v1 = Vec3::new(1.0, 33.0, 11.0);
             let v2 = Vec3::new(-1.0, 2.0, -3.0);
-            assert_eq!(Vec3::new(2.0, -1.0, 4.0), v1 - v2);
+            assert_eq!(Vec3::new(2.0, 31.0, 14.0), v1 - v2);
         }
 
         #[test]
