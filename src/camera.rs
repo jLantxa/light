@@ -102,7 +102,7 @@ impl Camera {
 
         self.resolution = config.resolution;
         assert!(
-            (self.resolution.0 > 0) && (self.resolution.1 > 0),
+            ((self.resolution.0 * self.resolution.1) > 0),
             "The camera resolution cannot be zero"
         );
 
