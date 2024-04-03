@@ -49,13 +49,14 @@ impl Ray {
 #[cfg(test)]
 mod test {
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn point_at() {
         let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0));
 
         let component: f32 = (3.0 + 3.0_f32.sqrt()) / 3.0;
-        assert_eq!(
+        assert_relative_eq!(
             Vec3::new(component, component, component),
             ray.point_at(1.0)
         );

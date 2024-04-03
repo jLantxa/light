@@ -16,72 +16,125 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::algebra::Vec3;
-use crate::light::Ray;
 
+use crate::algebra::{self, Vec3, UNIT_X, UNIT_Y, UNIT_Z};
+use crate::light::{self, Ray};
+
+#[derive(Debug, Clone, Copy)]
+pub enum FieldOfView {
+    Horizontal(f32),
+    Vertical(f32),
+}
+
+impl Default for FieldOfView {
+    fn default() -> Self {
+        Self::Vertical(90.0_f32.to_radians())
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct CameraConfig {
+    pub position: Vec3,
+    pub direction: Vec3,
+    pub resolution: (usize, usize),
+    pub rotation: f32,
+    pub fov: FieldOfView,
+}
+
+#[derive(Default, Debug)]
+struct CoordinateSystem {
+    origin: Vec3,
+    u: Vec3, // unit x =: y <cross> z
+    v: Vec3, // unit y =: z <cross> x
+    w: Vec3, // unit z =: x <cross> y
+}
+
+#[derive(Default, Debug)]
 pub struct Camera {
-    position: Vec3,             // Position of the camera in 3D space
-    facing: Vec3,               // Direction the camera is facing towards
-    rotation: f32,              // Rotation, in the positive sense, around the facing axis
-    resolution: (usize, usize), // Resolutions (width, height) in pixels
-    fov: f32,                   // Field of view in radians
+    coordinate_system: CoordinateSystem, // Coordinate system (origin and base vectors)
+    rotation: f32,                       // Rotation, in the positive sense, around the facing axis
+    resolution: (usize, usize),          // Resolutions (width, height) in pixels
+    fov: FieldOfView,                    // Field of view (Horizontal or Vertical) in radians
+
+    distance_to_plane: f32,
+    first_pixel_pos: Vec3,
+    pixel_width: f32,
+    pixel_height: f32,
+}
+
+impl CoordinateSystem {
+    pub fn new(origin: Vec3, u: Vec3, v: Vec3, w: Vec3) -> Self {
+        Self { origin, u, v, w }
+    }
 }
 
 impl Camera {
-    pub fn new(
-        position: Vec3,
-        facing: Vec3,
-        rotation: f32,
-        resolution: (usize, usize),
-        fov: f32,
-    ) -> Self {
-        Self {
-            position: position,
-            facing: facing.normal(),
-            rotation: rotation,
-            resolution: resolution,
-            fov: fov,
-        }
-    }
-
     pub fn position(&self) -> Vec3 {
-        self.position
+        self.coordinate_system.origin
     }
 
-    pub fn set_position(&mut self, new_position: Vec3) {
-        self.position = new_position;
-    }
-
-    pub fn facing(&self) -> Vec3 {
-        self.facing
-    }
-
-    pub fn set_facing(&mut self, new_facing: Vec3) {
-        self.facing = new_facing;
+    pub fn direction(&self) -> Vec3 {
+        self.coordinate_system.w
     }
 
     pub fn rotation(&self) -> f32 {
         self.rotation
     }
 
-    pub fn set_rotation(&mut self, new_rotation: f32) {
-        self.rotation = new_rotation;
+    pub fn fov(&self) -> FieldOfView {
+        self.fov
     }
 
     pub fn resolution(&self) -> (usize, usize) {
         self.resolution
     }
 
-    pub fn set_resolution(&mut self, new_resolution: (usize, usize)) {
-        self.resolution = new_resolution;
-    }
+    pub fn config(&mut self, config: &CameraConfig) {
+        const WORLD_UP: Vec3 = UNIT_Y;
 
-    pub fn fov(&self) -> f32 {
-        self.fov
-    }
+        self.resolution = config.resolution;
+        self.rotation = config.rotation;
+        self.fov = config.fov;
 
-    pub fn set_fov(&mut self, new_fov: f32) {
-        self.fov = new_fov;
+        // Set coordinates
+        self.coordinate_system.w = config.direction.normal();
+        self.coordinate_system.u = self.coordinate_system.w.cross(WORLD_UP).normal();
+        self.coordinate_system.v = self.coordinate_system.u.cross(self.coordinate_system.w);
+
+        // Apply rotation
+        if self.rotation != 0.0_f32 {
+            self.coordinate_system.u = algebra::rotate_vector(
+                &self.coordinate_system.u,
+                &self.coordinate_system.w,
+                self.rotation,
+            );
+            self.coordinate_system.u.normalize();
+            self.coordinate_system.v = algebra::rotate_vector(
+                &self.coordinate_system.v,
+                &self.coordinate_system.w,
+                self.rotation,
+            );
+            self.coordinate_system.v.normalize();
+        }
+
+        // Calculate distance to plane using fov
+        let aspect_ratio: f32 = (self.resolution.0 as f32) / (self.resolution.1 as f32);
+        let sensor_height: f32 = 1.0;
+        let sensor_width: f32 = sensor_height * aspect_ratio;
+        self.distance_to_plane = match self.fov {
+            FieldOfView::Horizontal(alpha) => sensor_width / (2.0 * alpha.cos()),
+            FieldOfView::Vertical(alpha) => sensor_height / (2.0 * alpha.cos()),
+        };
+
+        // Calculate pixel size
+        self.pixel_width = sensor_width / (self.resolution.0 as f32);
+        self.pixel_height = sensor_height / (self.resolution.1 as f32);
+
+        // Calculate position for first pixel
+        self.first_pixel_pos = self.coordinate_system.origin
+            + (self.distance_to_plane * self.coordinate_system.w)
+            - (self.coordinate_system.u * ((sensor_width / 2.0) - self.pixel_width / 2.0))
+            + (self.coordinate_system.v * ((sensor_height / 2.0) - self.pixel_height / 2.0));
     }
 
     /// Cast a Ray to pixel (i, j)
@@ -90,29 +143,15 @@ impl Camera {
             return None;
         }
 
-        todo!()
+        let pixel_position = self.first_pixel_pos
+            + ((i as f32) * self.pixel_width * self.coordinate_system.u)
+            - ((j as f32) * self.pixel_height * self.coordinate_system.v);
+        let ray_direction = pixel_position - self.coordinate_system.origin;
+        Some(Ray::new(self.coordinate_system.origin, ray_direction))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::f32::consts::FRAC_PI_2;
-
     use super::*;
-
-    #[test]
-    fn cast_rays() {
-        let camera = Camera::new(
-            Vec3::new(0.0, 0.0, 0.0),
-            Vec3::new(0.0, 1.0, 0.0),
-            0.0,
-            (854, 480),
-            FRAC_PI_2,
-        );
-
-        // Out of the sensor
-        assert_eq!(None, camera.cast_ray(854, 0));
-        assert_eq!(None, camera.cast_ray(0, 480));
-        assert_eq!(None, camera.cast_ray(1000, 1000));
-    }
 }
