@@ -84,6 +84,7 @@ impl Intersectable for Sphere {
 #[cfg(test)]
 mod test {
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn closest_sol() {
@@ -103,8 +104,8 @@ mod test {
         let intersection = ray.point_at(t);
         let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
 
-        assert_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
-        assert_eq!(Vec3::new(0.0, 0.0, -1.0), hit_normal);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, -1.0), hit_normal);
     }
 
     #[test]
@@ -116,8 +117,8 @@ mod test {
         let intersection = ray.point_at(t);
         let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
 
-        assert_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
-        assert_eq!(Vec3::new(0.0, 0.0, 1.0), hit_normal);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0), hit_normal);
     }
 
     #[test]
