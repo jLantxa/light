@@ -17,8 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::algebra::{self, Vec3, UNIT_X, UNIT_Y, UNIT_Z};
-use crate::light::{self, Ray};
+use std::f32::consts::PI;
+
+use crate::algebra::{self, Vec3, UNIT_Y};
+use crate::light::Ray;
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldOfView {
@@ -69,6 +71,12 @@ impl CoordinateSystem {
 }
 
 impl Camera {
+    pub fn new(config: &CameraConfig) -> Self {
+        let mut camera = Self::default();
+        camera.config(config);
+        return camera;
+    }
+
     pub fn position(&self) -> Vec3 {
         self.coordinate_system.origin
     }
@@ -93,13 +101,22 @@ impl Camera {
         const WORLD_UP: Vec3 = UNIT_Y;
 
         self.resolution = config.resolution;
+        assert!(
+            (self.resolution.0 > 0) && (self.resolution.1 > 0),
+            "The camera resolution cannot be zero"
+        );
+
         self.rotation = config.rotation;
         self.fov = config.fov;
 
         // Set coordinates
         self.coordinate_system.w = config.direction.normal();
         self.coordinate_system.u = self.coordinate_system.w.cross(WORLD_UP).normal();
-        self.coordinate_system.v = self.coordinate_system.u.cross(self.coordinate_system.w);
+        self.coordinate_system.v = self
+            .coordinate_system
+            .u
+            .cross(self.coordinate_system.w)
+            .normal();
 
         // Apply rotation
         if self.rotation != 0.0_f32 {
@@ -122,8 +139,30 @@ impl Camera {
         let sensor_height: f32 = 1.0;
         let sensor_width: f32 = sensor_height * aspect_ratio;
         self.distance_to_plane = match self.fov {
-            FieldOfView::Horizontal(alpha) => sensor_width / (2.0 * alpha.cos()),
-            FieldOfView::Vertical(alpha) => sensor_height / (2.0 * alpha.cos()),
+            FieldOfView::Horizontal(mut alpha) => {
+                alpha = alpha.abs();
+                assert!(
+                    alpha > 0.0,
+                    "Horizontal field of view must be greater than 0 degrees"
+                );
+                assert!(
+                    alpha < PI,
+                    "Horizontal field of view must be smaller than 180 degrees"
+                );
+                sensor_width / (2.0 * (alpha / 2.0).tan())
+            }
+            FieldOfView::Vertical(mut alpha) => {
+                alpha = alpha.abs();
+                assert!(
+                    alpha > 0.0,
+                    "Vertical field of view must be greater than 0 degrees"
+                );
+                assert!(
+                    alpha < PI,
+                    "Vertical field of view must be smaller than 180 degrees"
+                );
+                sensor_height / (2.0 * (alpha / 2.0).tan())
+            }
         };
 
         // Calculate pixel size
@@ -138,7 +177,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    fn cast_ray(&self, i: usize, j: usize) -> Option<Ray> {
+    pub fn cast_ray(&self, i: usize, j: usize) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
