@@ -17,12 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-mod algebra;
-mod camera;
-mod geometry;
-mod light;
-mod scene;
+use crate::geometry::Intersectable;
 
-fn main() {
-    println!("light!");
+struct Scene {
+    objects: Vec<Box<dyn Intersectable>>,
 }
