@@ -23,7 +23,8 @@ use image::{Rgb, RgbImage};
 use rand::{rngs::ThreadRng, Rng};
 
 use crate::algebra::{self, Vec3, UNIT_Y};
-use crate::light::Ray;
+use crate::light::{LightModel, Ray};
+use crate::scene::Scene;
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldOfView {
@@ -257,7 +258,12 @@ impl Camera {
         Some(Ray::new(ray_origin, ray_direction))
     }
 
-    pub fn capture(&self, num_samples: u32) -> Result<RgbImage, String> {
+    pub fn capture(
+        &self,
+        scene: &Scene,
+        model: &dyn LightModel,
+        num_samples_per_pixel: u32,
+    ) -> Result<RgbImage, String> {
         let mut image = RgbImage::new(self.resolution.0, self.resolution.1);
         let mut rng = rand::thread_rng();
 

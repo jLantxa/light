@@ -18,7 +18,9 @@
 */
 
 use crate::geometry::Intersectable;
+use crate::light::Color;
 
-struct Scene {
+pub struct Scene {
+    background: Color,
     objects: Vec<Box<dyn Intersectable>>,
 }

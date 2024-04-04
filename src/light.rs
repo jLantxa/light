@@ -25,6 +25,14 @@ pub struct Ray {
     direction: Vec3,
 }
 
+pub type Color = Vec3;
+
+pub trait LightModel {
+    fn cast_ray(&self, ray: &Ray) -> Color {
+        Color::zero()
+    }
+}
+
 impl Ray {
     pub fn new(origin: Vec3, direction: Vec3) -> Self {
         Self {
