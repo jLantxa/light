@@ -19,10 +19,12 @@
 
 use std::f32::consts::PI;
 
+use image::{Rgb, RgbImage};
 use rand::{rngs::ThreadRng, Rng};
 
 use crate::algebra::{self, Vec3, UNIT_Y};
-use crate::light::Ray;
+use crate::light::{LightModel, Ray};
+use crate::scene::Scene;
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldOfView {
@@ -52,7 +54,7 @@ impl Default for FocusMode {
 pub struct CameraConfig {
     pub position: Vec3,
     pub direction: Vec3,
-    pub resolution: (usize, usize),
+    pub resolution: (u32, u32),
     pub rotation: f32,
     pub fov: FieldOfView,
     pub focus_mode: FocusMode,
@@ -70,7 +72,7 @@ struct CoordinateSystem {
 pub struct Camera {
     coordinate_system: CoordinateSystem, // Coordinate system (origin and base vectors)
     rotation: f32,                       // Rotation, in the positive sense, around the facing axis
-    resolution: (usize, usize),          // Resolutions (width, height) in pixels
+    resolution: (u32, u32),              // Resolutions (width, height) in pixels
     fov: FieldOfView,                    // Field of view (Horizontal or Vertical) in radians
     focus_mode: FocusMode,
 
@@ -109,7 +111,7 @@ impl Camera {
         self.fov
     }
 
-    pub fn resolution(&self) -> (usize, usize) {
+    pub fn resolution(&self) -> (u32, u32) {
         self.resolution
     }
 
@@ -137,7 +139,7 @@ impl Camera {
                         "Vertical field of view must be in the interval (0, 180)".to_string()
                     );
                 }
-                self.fov = FieldOfView::Horizontal(alpha);
+                self.fov = FieldOfView::Vertical(alpha);
             }
         }
 
@@ -145,6 +147,7 @@ impl Camera {
         self.rotation = config.rotation;
 
         // Set coordinates
+        self.coordinate_system.origin = config.position;
         self.coordinate_system.w = config.direction.normal();
         self.coordinate_system.u = self.coordinate_system.w.cross(WORLD_UP).normal();
         self.coordinate_system.v = self
@@ -222,7 +225,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    fn cast_ray(&self, i: usize, j: usize, rng: &mut ThreadRng) -> Option<Ray> {
+    fn cast_ray(&self, i: u32, j: u32, rng: &mut ThreadRng) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
@@ -253,6 +256,18 @@ impl Camera {
         let ray_direction = pixel_position - ray_origin;
 
         Some(Ray::new(ray_origin, ray_direction))
+    }
+
+    pub fn capture(
+        &self,
+        scene: &Scene,
+        model: &dyn LightModel,
+        num_samples_per_pixel: u32,
+    ) -> Result<RgbImage, String> {
+        let mut image = RgbImage::new(self.resolution.0, self.resolution.1);
+        let mut rng = rand::thread_rng();
+
+        todo!();
     }
 }
 
