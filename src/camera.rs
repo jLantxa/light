@@ -17,14 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use rand::{rngs::ThreadRng, Rng};
 use std::f32::consts::PI;
 
-use image::RgbImage;
-use rand::{rngs::ThreadRng, Rng};
-
 use crate::algebra::{self, Vec3, UNIT_Y};
-use crate::light::{LightModel, Ray};
-use crate::scene::Scene;
+use crate::light::Ray;
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldOfView {
@@ -92,6 +89,7 @@ impl Camera {
     pub fn new(config: &CameraConfig) -> Self {
         let mut camera = Self::default();
         camera.config(config);
+
         return camera;
     }
 
@@ -256,18 +254,6 @@ impl Camera {
         let ray_direction = pixel_position - ray_origin;
 
         Some(Ray::new(ray_origin, ray_direction, wavelength))
-    }
-
-    pub fn capture(
-        &self,
-        scene: &Scene,
-        model: &dyn LightModel,
-        num_samples_per_pixel: u32,
-    ) -> Result<RgbImage, String> {
-        let mut image = RgbImage::new(self.resolution.0, self.resolution.1);
-        let mut rng = rand::thread_rng();
-
-        todo!();
     }
 }
 
