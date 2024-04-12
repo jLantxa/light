@@ -26,17 +26,33 @@ pub struct Vec3 {
     pub z: f32,
 }
 
+pub const UNIT_X: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+pub const UNIT_Y: Vec3 = Vec3::new(0.0, 1.0, 0.0);
+pub const UNIT_Z: Vec3 = Vec3::new(0.0, 0.0, 1.0);
+
 impl Vec3 {
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
-    pub fn zero() -> Self {
+    pub const fn zero() -> Self {
         Self {
             x: 0.0,
             y: 0.0,
             z: 0.0,
         }
+    }
+
+    pub const fn unit_x() -> Self {
+        UNIT_X
+    }
+
+    pub const fn unit_y() -> Self {
+        UNIT_Y
+    }
+
+    pub const fn unit_z() -> Self {
+        UNIT_Z
     }
 
     pub fn norm2(&self) -> f32 {
@@ -224,10 +240,6 @@ pub fn solve_deg2_eq(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
         }
     }
 }
-
-pub const UNIT_X: Vec3 = Vec3::new(1.0, 0.0, 0.0);
-pub const UNIT_Y: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-pub const UNIT_Z: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
 /// Rotate a vector around an axis using Rodrigues' formula
 /// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula

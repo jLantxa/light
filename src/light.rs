@@ -19,13 +19,14 @@
 
 use crate::algebra::Vec3;
 
+pub type Color = Vec3;
+
 #[derive(Debug, PartialEq)]
 pub struct Ray {
     origin: Vec3,
     direction: Vec3,
+    wavelength: f32,
 }
-
-pub type Color = Vec3;
 
 pub trait LightModel {
     fn cast_ray(&self, ray: &Ray) -> Color {
@@ -34,10 +35,11 @@ pub trait LightModel {
 }
 
 impl Ray {
-    pub fn new(origin: Vec3, direction: Vec3) -> Self {
+    pub fn new(origin: Vec3, direction: Vec3, wavelength: f32) -> Self {
         Self {
             origin: origin,
             direction: direction.normal(),
+            wavelength: wavelength,
         }
     }
 
@@ -45,12 +47,16 @@ impl Ray {
         self.origin + (t * self.direction)
     }
 
-    pub fn origin(&self) -> Vec3 {
+    pub const fn origin(&self) -> Vec3 {
         self.origin
     }
 
-    pub fn direction(&self) -> Vec3 {
+    pub const fn direction(&self) -> Vec3 {
         self.direction
+    }
+
+    pub const fn wavelength(&self) -> f32 {
+        self.wavelength
     }
 }
 
@@ -61,7 +67,7 @@ mod test {
 
     #[test]
     fn point_at() {
-        let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0));
+        let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0), 500e-9);
 
         let component: f32 = (3.0 + 3.0_f32.sqrt()) / 3.0;
         assert_relative_eq!(
