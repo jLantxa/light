@@ -19,19 +19,11 @@
 
 use crate::algebra::Vec3;
 
-pub type Color = Vec3;
-
 #[derive(Debug, PartialEq)]
 pub struct Ray {
     origin: Vec3,
     direction: Vec3,
     wavelength: f32,
-}
-
-pub trait LightModel {
-    fn cast_ray(&self, ray: &Ray) -> Color {
-        Color::zero()
-    }
 }
 
 impl Ray {
