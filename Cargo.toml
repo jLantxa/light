@@ -1,11 +1,11 @@
 [package]
 name = "light"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-approx = "*"
-image = "*"
-rand = "*"
+approx = "0.5.1"
+image = "0.25.1"
+rand = "0.8.5"
