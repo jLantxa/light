@@ -19,6 +19,7 @@
 
 use crate::algebra;
 
+#[derive(Debug)]
 pub struct Spectrum {
     wavelengths: Vec<f32>,
     powers: Vec<f32>,
@@ -26,19 +27,13 @@ pub struct Spectrum {
 }
 
 impl Spectrum {
-    pub fn new(start: f32, end: f32, num_samples: usize) -> Self {
-        let step: f32 = end - start / (num_samples as f32);
-
-        let mut wavelengths = Vec::<f32>::with_capacity(num_samples);
-        for i in 0..num_samples {
-            wavelengths[i] = start + (i as f32) * step;
+    pub fn new(wavelenths: Vec<f32>) -> Self {
+        let size: usize = wavelenths.len();
+        Self {
+            wavelengths: wavelenths,
+            powers: vec![0.0; size],
+            size: size,
         }
-
-        return Self {
-            wavelengths: wavelengths,
-            powers: vec![0.0; num_samples],
-            size: num_samples,
-        };
     }
 
     fn find_wavelength_index(&self, wavelength: f32) -> Option<usize> {
@@ -87,6 +82,10 @@ impl Spectrum {
         } else {
             None
         }
+    }
+
+    pub fn size(&self) -> usize {
+        self.size
     }
 }
 

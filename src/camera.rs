@@ -223,7 +223,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    fn cast_ray(&self, i: u32, j: u32, wavelength: f32, rng: &mut ThreadRng) -> Option<Ray> {
+    pub fn cast_ray(&self, i: u32, j: u32, wavelength: f32, rng: &mut ThreadRng) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
