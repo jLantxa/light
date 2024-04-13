@@ -17,14 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-mod algebra;
-mod camera;
-mod geometry;
-mod light;
-mod loader;
-mod scene;
-mod spectrum;
+use crate::geometry::Intersectable;
 
-fn main() {
-    println!("light!");
+#[derive(Default)]
+pub struct Scene {
+    objects: Vec<Box<dyn Intersectable>>,
+    // background_emission: Spectrum
+}
+
+impl Scene {
+    pub fn add_object(&mut self, object: Box<dyn Intersectable>) {
+        self.objects.push(object);
+    }
+
+    pub fn get_objects(&self) -> &Vec<Box<dyn Intersectable>> {
+        self.objects.as_ref()
+    }
 }
