@@ -2,6 +2,17 @@
     "meta": {
         "name": "Test Scene #0"
     },
+    "wavelengths": [
+        380.0e-9,
+        430.0e-9,
+        480.0e-9,
+        530.0e-9,
+        580.0e-9,
+        630.0e-9,
+        680.0e-9,
+        730.0e-9,
+        780.0e-9
+    ],
     "materials": [],
     "scene": {
         "objects": [

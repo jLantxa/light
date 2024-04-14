@@ -17,6 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::{f32::consts::PI, thread::Thread};
+
 use image::{Rgb, RgbImage};
 use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
 
@@ -113,8 +115,74 @@ impl PathTracer {
 
         match intersection {
             None => 0.0,
-            Some((point, object)) => todo!(),
+            Some((point, object)) => {
+                let material = object.get_material();
+                let emission_spd = material.emission();
+                let transmission_spd = material.absorption();
+
+                let e = if let Some(emissive_spectrum) = emission_spd {
+                    emissive_spectrum
+                        .interpolate_at(ray.wavelength())
+                        .unwrap_or(0.0)
+                } else {
+                    0.0
+                };
+
+                let t = if let Some(transmitted_spectrum) = transmission_spd {
+                    transmitted_spectrum
+                        .interpolate_at(ray.wavelength())
+                        .unwrap_or(1.0)
+                } else {
+                    0.0
+                };
+
+                // All incident energy absorbed, so no secondary ray reflected
+                if t <= 0.0 {
+                    return e;
+                }
+
+                let next_ray = self.calculate_next_ray(&point, ray, object, rng);
+
+                e + t * self.propagate_ray(&next_ray, scene, counter + 1, rng)
+            }
         }
+    }
+
+    fn sample_hemisphere(&self, normal: &Vec3, rng: &mut ThreadRng) -> Vec3 {
+        let phi = 2.0 * PI * rng.gen::<f32>();
+        let r = rng.gen::<f32>();
+        let sqrt_r = r.sqrt();
+
+        let w = normal.normal();
+
+        let rand_v = if (w.cross(Vec3::new(0.0, 0.0, 1.0))).norm() > 0.0 {
+            w.cross(Vec3::new(0.0, 0.0, 1.0))
+        } else {
+            Vec3::new(1.0, 0.0, 0.0)
+        };
+
+        let u = w.cross(rand_v);
+        let v = w.cross(u);
+
+        let sample_v = (sqrt_r * phi.cos()) * u + (sqrt_r * phi.sin()) * v + (1.0 - r).sqrt() * w;
+
+        return sample_v;
+    }
+
+    fn calculate_next_ray(
+        &self,
+        intersection: &Vec3,
+        incident_ray: &Ray,
+        object: &Box<dyn MaterialObject>,
+        rng: &mut ThreadRng,
+    ) -> Ray {
+        // TODO: Only diffuse component implement
+
+        let material = object.get_material();
+        let normal = object.hit_normal(intersection, &incident_ray.direction());
+        let sample_direction = self.sample_hemisphere(&normal, rng);
+
+        Ray::new(*intersection, sample_direction, incident_ray.wavelength())
     }
 
     /// Calculates the intersection of a Ray with the objects of the scene and returns the closest
