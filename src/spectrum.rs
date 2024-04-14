@@ -93,7 +93,13 @@ impl std::ops::Index<usize> for Spectrum {
     type Output = f32;
 
     fn index(&self, index: usize) -> &Self::Output {
-        return &self.powers[index];
+        &self.powers[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for Spectrum {
+    fn index_mut(&mut self, index: usize) -> &mut f32 {
+        &mut self.powers[index]
     }
 }
 

@@ -17,20 +17,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::object::MaterialObject;
+use crate::spectrum::Spectrum;
 
-#[derive(Default)]
-pub struct Scene {
-    objects: Vec<Box<dyn MaterialObject>>,
-    // background_emission: Spectrum
+#[derive(Debug, Default)]
+pub struct MaterialProperties {
+    emission: Option<Spectrum>,   // Emitted SPD
+    absorption: Option<Spectrum>, // Absorbed SPD
+
+    transmitance: f32, // Fraction of non-absorbed light that gets transmitted instead of reflected.
+    roughness: f32,    // Fraction of diffuse reflection vs specular reflection.
+    refraction_index: f32,
 }
 
-impl Scene {
-    pub fn add_object(&mut self, object: Box<dyn MaterialObject>) {
-        self.objects.push(object);
+impl MaterialProperties {
+    pub fn emission(&self) -> &Option<Spectrum> {
+        &self.emission
     }
 
-    pub fn get_objects(&self) -> &Vec<Box<dyn MaterialObject>> {
-        self.objects.as_ref()
+    pub fn absorption(&self) -> &Option<Spectrum> {
+        &self.absorption
+    }
+
+    pub fn transmitance(&self) -> f32 {
+        self.transmitance
+    }
+
+    pub fn roughness(&self) -> f32 {
+        self.roughness
+    }
+
+    pub fn refraction_index(&self) -> f32 {
+        self.refraction_index
     }
 }

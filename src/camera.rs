@@ -147,11 +147,11 @@ impl Camera {
         // Set coordinates
         self.coordinate_system.origin = config.position;
         self.coordinate_system.w = config.direction.normal();
-        self.coordinate_system.u = self.coordinate_system.w.cross(WORLD_UP).normal();
+        self.coordinate_system.u = WORLD_UP.cross(self.coordinate_system.w).normal();
         self.coordinate_system.v = self
             .coordinate_system
-            .u
-            .cross(self.coordinate_system.w)
+            .w
+            .cross(self.coordinate_system.u)
             .normal();
 
         // Apply rotation
@@ -252,8 +252,9 @@ impl Camera {
             + ((i as f32) * self.pixel_width * self.coordinate_system.u)
             - ((j as f32) * self.pixel_height * self.coordinate_system.v);
         let ray_direction = pixel_position - ray_origin;
+        let ray = Ray::new(ray_origin, ray_direction, wavelength);
 
-        Some(Ray::new(ray_origin, ray_direction, wavelength))
+        Some(ray)
     }
 }
 

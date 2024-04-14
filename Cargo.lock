@@ -414,6 +414,7 @@ dependencies = [
  "approx",
  "image",
  "rand",
+ "rayon",
  "serde_json",
 ]
 

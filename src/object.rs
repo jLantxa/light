@@ -19,10 +19,12 @@
 
 use crate::algebra::{self, Vec3};
 use crate::light::Ray;
+use crate::material::MaterialProperties;
 
-pub trait Intersectable {
+pub trait MaterialObject {
     fn intersect(&self, ray: &Ray) -> Option<f32>;
     fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3;
+    fn get_material(&self) -> &MaterialProperties;
 }
 
 /// Returns the closest positive distance (facing the direction of a Ray)
@@ -38,14 +40,20 @@ fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
     }
 }
 
+#[derive(Debug)]
 pub struct Sphere {
     center: Vec3,
     radius: f32,
+    material: MaterialProperties,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f32, material: MaterialProperties) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 
     pub fn center(&self) -> Vec3 {
@@ -57,7 +65,7 @@ impl Sphere {
     }
 }
 
-impl Intersectable for Sphere {
+impl MaterialObject for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<f32> {
         let oc: Vec3 = ray.origin() - self.center;
         let d: Vec3 = ray.direction();
@@ -79,6 +87,10 @@ impl Intersectable for Sphere {
         let surf_normal = &self.center - intersection;
         (direction.dot(surf_normal) * surf_normal).normal()
     }
+
+    fn get_material(&self) -> &MaterialProperties {
+        &self.material
+    }
 }
 
 #[cfg(test)]
@@ -97,7 +109,11 @@ mod test {
 
     #[test]
     fn intersect_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let sphere = Sphere::new(
+            Vec3::new(0.0, 0.0, 0.0),
+            10.0,
+            MaterialProperties::default(),
+        );
         let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0), 500e-9);
 
         let t = sphere.intersect(&ray).unwrap();
@@ -110,7 +126,11 @@ mod test {
 
     #[test]
     fn intersect_from_inside_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let sphere = Sphere::new(
+            Vec3::new(0.0, 0.0, 0.0),
+            10.0,
+            MaterialProperties::default(),
+        );
         let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0), 500e-9);
 
         let t = sphere.intersect(&ray).unwrap();
@@ -123,7 +143,11 @@ mod test {
 
     #[test]
     fn no_intersect_behind_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
+        let sphere = Sphere::new(
+            Vec3::new(0.0, 0.0, 0.0),
+            10.0,
+            MaterialProperties::default(),
+        );
         let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0), 500e-9);
 
         let t = sphere.intersect(&ray);

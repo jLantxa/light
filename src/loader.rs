@@ -23,7 +23,8 @@ use std::io::BufReader;
 
 use crate::algebra::Vec3;
 use crate::camera::Camera;
-use crate::geometry::{Intersectable, Sphere};
+use crate::material::MaterialProperties;
+use crate::object::{MaterialObject, Sphere};
 use crate::scene::Scene;
 
 pub struct FileLoader {
@@ -105,7 +106,7 @@ impl FileLoader {
     fn parse_sphere(
         &self,
         sphere_obj: &serde_json::Value,
-    ) -> Result<Box<dyn Intersectable>, ParseError> {
+    ) -> Result<Box<dyn MaterialObject>, ParseError> {
         let center_json = sphere_obj.get("center");
         let radius_json = sphere_obj.get("radius");
 
@@ -126,13 +127,17 @@ impl FileLoader {
         let center = self.parse_vec3(&center_json.unwrap());
         let radius: f32 = radius_json.unwrap().as_f64().unwrap() as f32;
 
-        return Ok(Box::new(Sphere::new(center?, radius)));
+        Ok(Box::new(Sphere::new(
+            center?,
+            radius,
+            MaterialProperties::default(),
+        )))
     }
 
     fn parse_object(
         &self,
         obj_json: &serde_json::Value,
-    ) -> Result<Box<dyn Intersectable>, ParseError> {
+    ) -> Result<Box<dyn MaterialObject>, ParseError> {
         let obj_type = obj_json.get("type");
         if let Some(obj_type) = obj_type {
             let obj_type_str = obj_type.as_str();
@@ -158,12 +163,12 @@ impl FileLoader {
     fn parse_objects(
         &self,
         scene_value: &serde_json::Value,
-    ) -> Result<Vec<Box<dyn Intersectable>>, ParseError> {
+    ) -> Result<Vec<Box<dyn MaterialObject>>, ParseError> {
         let objects_json = scene_value.get("objects");
 
         match objects_json {
             Some(objects_json) => {
-                let mut objects: Vec<Box<dyn Intersectable>> = Vec::new();
+                let mut objects: Vec<Box<dyn MaterialObject>> = Vec::new();
 
                 if let Some(obj_array) = objects_json.as_array() {
                     for obj_json in obj_array {
