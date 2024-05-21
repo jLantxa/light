@@ -23,15 +23,13 @@ use crate::algebra::Vec3;
 pub struct Ray {
     origin: Vec3,
     direction: Vec3,
-    wavelength: f32,
 }
 
 impl Ray {
-    pub fn new(origin: Vec3, direction: Vec3, wavelength: f32) -> Self {
+    pub fn new(origin: Vec3, direction: Vec3) -> Self {
         Self {
             origin: origin,
             direction: direction.normal(),
-            wavelength: wavelength,
         }
     }
 
@@ -46,10 +44,6 @@ impl Ray {
     pub const fn direction(&self) -> Vec3 {
         self.direction
     }
-
-    pub const fn wavelength(&self) -> f32 {
-        self.wavelength
-    }
 }
 
 #[cfg(test)]
@@ -59,7 +53,7 @@ mod test {
 
     #[test]
     fn point_at() {
-        let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0), 500e-9);
+        let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0));
 
         let component: f32 = (3.0 + 3.0_f32.sqrt()) / 3.0;
         assert_relative_eq!(

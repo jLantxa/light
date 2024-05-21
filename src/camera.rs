@@ -223,7 +223,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    pub fn cast_ray(&self, i: u32, j: u32, wavelength: f32, rng: &mut ThreadRng) -> Option<Ray> {
+    pub fn cast_ray(&self, i: u32, j: u32, rng: &mut ThreadRng) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
@@ -253,7 +253,7 @@ impl Camera {
             - ((j as f32) * self.pixel_height * self.coordinate_system.v);
         let ray_direction = pixel_position - ray_origin;
 
-        Some(Ray::new(ray_origin, ray_direction, wavelength))
+        Some(Ray::new(ray_origin, ray_direction))
     }
 }
 
@@ -278,7 +278,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         for i in 0..800 {
             for j in 0..600 {
-                let ray = camera.cast_ray(i, j, 500e-9, &mut rng);
+                let ray = camera.cast_ray(i, j, &mut rng);
                 assert_eq!(Vec3::zero(), ray.unwrap().origin());
             }
         }
@@ -303,7 +303,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         for i in 0..800 {
             for j in 0..600 {
-                let ray = camera.cast_ray(i, j, 500e-9, &mut rng);
+                let ray = camera.cast_ray(i, j, &mut rng);
                 let ray_origin = ray.unwrap().origin();
                 let x = ray_origin.x;
                 let y = ray_origin.y;

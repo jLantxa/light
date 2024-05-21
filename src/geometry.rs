@@ -98,7 +98,7 @@ mod test {
     #[test]
     fn intersect_sphere() {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0), 500e-9);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0));
 
         let t = sphere.intersect(&ray).unwrap();
         let intersection = ray.point_at(t);
@@ -111,7 +111,7 @@ mod test {
     #[test]
     fn intersect_from_inside_sphere() {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0), 500e-9);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
 
         let t = sphere.intersect(&ray).unwrap();
         let intersection = ray.point_at(t);
@@ -124,7 +124,7 @@ mod test {
     #[test]
     fn no_intersect_behind_sphere() {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0), 500e-9);
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0));
 
         let t = sphere.intersect(&ray);
         assert_eq!(t, None);
