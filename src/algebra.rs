@@ -252,10 +252,6 @@ pub fn rotate_vector(v: &Vec3, k: &Vec3, theta: f32) -> Vec3 {
     (*v * cos_th) + (k.cross(*v) * sin_th) + (*k * (k.dot(*v)) * (1.0_f32 - cos_th))
 }
 
-pub fn linear_interpolation(x0: f32, x1: f32, y0: f32, y1: f32, x: f32) -> f32 {
-    y0 + (y1 - y0) * ((x - x0) / (x1 - x0))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -419,32 +415,5 @@ mod tests {
         let k = Vec3::new(1.0, 0.0, 0.0);
         let v_rot = rotate_vector(&v, &k, 90.0_f32.to_radians());
         assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0_f32), v_rot);
-    }
-
-    #[test]
-    fn test_linear_interpolation() {
-        let (x0, x1): (f32, f32) = (1.0, 2.0);
-        let (y0, y1): (f32, f32) = (2.0, 4.0);
-        let x: f32 = 1.5;
-        let y = linear_interpolation(x0, x1, y0, y1, x);
-        assert_relative_eq!(y, 3.0);
-
-        let (x0, x1): (f32, f32) = (1.0, 2.0);
-        let (y0, y1): (f32, f32) = (2.0, 4.0);
-        let x: f32 = 1.25;
-        let y = linear_interpolation(x0, x1, y0, y1, x);
-        assert_relative_eq!(y, 2.5);
-
-        let (x0, x1): (f32, f32) = (1.0, 2.0);
-        let (y0, y1): (f32, f32) = (4.0, 2.0);
-        let x: f32 = 1.25;
-        let y = linear_interpolation(x0, x1, y0, y1, x);
-        assert_relative_eq!(y, 3.5);
-
-        let (x0, x1): (f32, f32) = (-1.0, 1.0);
-        let (y0, y1): (f32, f32) = (4.0, -1.0);
-        let x: f32 = 0.5;
-        let y = linear_interpolation(x0, x1, y0, y1, x);
-        assert_relative_eq!(y, 0.25);
     }
 }

@@ -21,9 +21,7 @@ mod algebra;
 mod camera;
 mod geometry;
 mod light;
-mod loader;
 mod scene;
-mod spectrum;
 
 fn main() {
     println!("light!");
