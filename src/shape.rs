@@ -20,7 +20,7 @@
 use crate::algebra::{self, Vec3};
 use crate::light::Ray;
 
-pub trait Intersectable {
+pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<f32>;
     fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3;
 }
@@ -57,7 +57,7 @@ impl Sphere {
     }
 }
 
-impl Intersectable for Sphere {
+impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<f32> {
         let oc: Vec3 = ray.origin() - self.center;
         let d: Vec3 = ray.direction();
@@ -79,6 +79,11 @@ impl Intersectable for Sphere {
         let surf_normal = &self.center - intersection;
         (direction.dot(surf_normal) * surf_normal).normal()
     }
+}
+
+struct Composite {
+    // bounding_box: Cube
+    objects: Vec<Box<dyn Shape>>,
 }
 
 #[cfg(test)]

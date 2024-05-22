@@ -17,20 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::geometry::Intersectable;
+use crate::shape::Shape;
 
 #[derive(Default)]
 pub struct Scene {
-    objects: Vec<Box<dyn Intersectable>>,
+    objects: Vec<Box<dyn Shape>>,
     // background_emission: Spectrum
 }
 
 impl Scene {
-    pub fn add_object(&mut self, object: Box<dyn Intersectable>) {
+    pub fn add_object(&mut self, object: Box<dyn Shape>) {
         self.objects.push(object);
     }
 
-    pub fn get_objects(&self) -> &Vec<Box<dyn Intersectable>> {
+    pub fn get_objects(&self) -> &Vec<Box<dyn Shape>> {
         self.objects.as_ref()
     }
 }
