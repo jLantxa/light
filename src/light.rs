@@ -21,8 +21,8 @@ use crate::algebra::Vec3;
 
 #[derive(Debug, PartialEq)]
 pub struct Ray {
-    origin: Vec3,
-    direction: Vec3,
+    pub origin: Vec3,
+    pub direction: Vec3,
 }
 
 impl Ray {
@@ -35,14 +35,6 @@ impl Ray {
 
     pub fn point_at(&self, t: f32) -> Vec3 {
         self.origin + (t * self.direction)
-    }
-
-    pub const fn origin(&self) -> Vec3 {
-        self.origin
-    }
-
-    pub const fn direction(&self) -> Vec3 {
-        self.direction
     }
 }
 
