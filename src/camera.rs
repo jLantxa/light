@@ -113,29 +113,25 @@ impl Camera {
         self.resolution
     }
 
-    pub fn config(&mut self, config: &CameraConfig) -> Result<(), String> {
+    pub fn config(&mut self, config: &CameraConfig) -> Result<(), &str> {
         const WORLD_UP: Vec3 = UNIT_Y;
 
         if (config.resolution.0 * config.resolution.1) == 0 {
-            return Err("The camera resolution cannot be zero".to_string());
+            return Err("The camera resolution cannot be zero");
         }
 
         match config.fov {
             FieldOfView::Horizontal(mut alpha) => {
                 alpha = alpha.abs();
                 if alpha <= 0.0 || alpha > PI {
-                    return Err(
-                        "Horizontal field of view must be in the interval (0, 180)".to_string()
-                    );
+                    return Err("Horizontal field of view must be in the interval (0, 180)");
                 }
                 self.fov = FieldOfView::Horizontal(alpha);
             }
             FieldOfView::Vertical(mut alpha) => {
                 alpha = alpha.abs();
                 if alpha <= 0.0 || alpha > PI {
-                    return Err(
-                        "Vertical field of view must be in the interval (0, 180)".to_string()
-                    );
+                    return Err("Vertical field of view must be in the interval (0, 180)");
                 }
                 self.fov = FieldOfView::Vertical(alpha);
             }
@@ -178,9 +174,9 @@ impl Camera {
                 aperture,
             } => {
                 if focal_distance < 0.0 {
-                    return Err("Focal distance must be postive".to_string());
+                    return Err("Focal distance must be postive");
                 } else if aperture < 0.0 {
-                    return Err("Aperture must be postive".to_string());
+                    return Err("Aperture must be postive");
                 }
 
                 self.distance_to_plane = focal_distance;

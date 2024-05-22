@@ -19,9 +19,9 @@
 
 mod algebra;
 mod camera;
-mod geometry;
 mod light;
 mod scene;
+mod shape;
 
 fn main() {
     println!("light!");
