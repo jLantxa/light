@@ -275,7 +275,7 @@ mod tests {
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
-                assert_eq!(Vec3::zero(), ray.unwrap().origin());
+                assert_eq!(Vec3::zero(), ray.unwrap().origin);
             }
         }
     }
@@ -300,7 +300,7 @@ mod tests {
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
-                let ray_origin = ray.unwrap().origin();
+                let ray_origin = ray.unwrap().origin;
                 let x = ray_origin.x;
                 let y = ray_origin.y;
                 let z = ray_origin.z;

@@ -20,9 +20,15 @@
 use crate::algebra::{self, Vec3};
 use crate::light::Ray;
 
+#[derive(Debug, PartialEq)]
+pub struct HitRecord {
+    pub ray_t: f32,
+    pub point: Vec3,
+    pub normal: Vec3,
+}
+
 pub trait Shape {
-    fn intersect(&self, ray: &Ray) -> Option<f32>;
-    fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3;
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord>;
 }
 
 /// Returns the closest positive distance (facing the direction of a Ray)
@@ -36,6 +42,27 @@ fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
     } else {
         None
     }
+}
+
+pub fn intersect_composite(objects: &Vec<Box<dyn Shape>>, ray: &Ray) -> Option<HitRecord> {
+    let mut closest_hit: Option<HitRecord> = None;
+
+    for object in objects {
+        let hit = object.intersect(&ray);
+        if hit.is_none() {
+            continue;
+        }
+
+        let hit = hit.unwrap();
+        if closest_hit.is_none()
+            || ((hit.ray_t >= 0.0) && (hit.ray_t < closest_hit.as_ref().unwrap().ray_t))
+        {
+            let hit = hit;
+            closest_hit.replace(hit);
+        }
+    }
+
+    closest_hit
 }
 
 pub struct Sphere {
@@ -55,12 +82,18 @@ impl Sphere {
     pub fn radius(&self) -> f32 {
         self.radius
     }
+
+    pub fn normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3 {
+        // -(d*n)n / |(d*n)n|
+        let surf_normal = &self.center - intersection;
+        (direction.dot(surf_normal) * surf_normal).normal()
+    }
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<f32> {
-        let oc: Vec3 = ray.origin() - self.center;
-        let d: Vec3 = ray.direction();
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        let oc: Vec3 = ray.origin - self.center;
+        let d: Vec3 = ray.direction;
 
         let a: f32 = d.norm().powf(2.0);
         let b: f32 = 2.0 * oc.dot(d);
@@ -70,20 +103,36 @@ impl Shape for Sphere {
 
         match solutions {
             None => None,
-            Some(sols) => closest_facing_solution(sols),
-        }
-    }
+            Some(sols) => {
+                let t = closest_facing_solution(sols);
+                if t.is_none() {
+                    return None;
+                }
 
-    fn hit_normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3 {
-        // -(d*n)n / |(d*n)n|
-        let surf_normal = &self.center - intersection;
-        (direction.dot(surf_normal) * surf_normal).normal()
+                let t = t.unwrap();
+                let point = ray.point_at(t);
+                let normal = self.normal(&point, &ray.direction);
+
+                Some(HitRecord {
+                    ray_t: t,
+                    point,
+                    normal,
+                })
+            }
+        }
     }
 }
 
-struct Composite {
+pub struct Composite {
     // bounding_box: Cube
-    objects: Vec<Box<dyn Shape>>,
+    pub objects: Vec<Box<dyn Shape>>,
+}
+
+impl Shape for Composite {
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        // If no interset bounding box, return None
+        return intersect_composite(&self.objects, &ray);
+    }
 }
 
 #[cfg(test)]
@@ -105,12 +154,10 @@ mod test {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
         let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0));
 
-        let t = sphere.intersect(&ray).unwrap();
-        let intersection = ray.point_at(t);
-        let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
+        let hit = sphere.intersect(&ray).expect("Expected some HitRecord");
 
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
-        assert_relative_eq!(Vec3::new(0.0, 0.0, -1.0), hit_normal);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), hit.point);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, -1.0), hit.normal);
     }
 
     #[test]
@@ -118,12 +165,10 @@ mod test {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
         let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
 
-        let t = sphere.intersect(&ray).unwrap();
-        let intersection = ray.point_at(t);
-        let hit_normal = sphere.hit_normal(&intersection, &ray.direction());
+        let hit_record = sphere.intersect(&ray).expect("Expected some HitRecord");
 
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), intersection);
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0), hit_normal);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), hit_record.point);
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0), hit_record.normal);
     }
 
     #[test]
@@ -131,7 +176,46 @@ mod test {
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
         let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0));
 
-        let t = sphere.intersect(&ray);
-        assert_eq!(t, None);
+        let hit = sphere.intersect(&ray);
+        assert_eq!(hit, None);
+    }
+
+    #[test]
+    fn test_intersect_composite() {
+        let objects: Vec<Box<dyn Shape>> = vec![
+            Box::new(Sphere::new(Vec3::new(0.0, 0.0, 20.0), 10.0)),
+            Box::new(Sphere::new(Vec3::new(0.0, 0.0, 20.0), 10.0)),
+            Box::new(Sphere::new(Vec3::new(20.0, 0.0, 20.0), 10.0)),
+        ];
+
+        let hit = intersect_composite(
+            &objects,
+            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
+        );
+        assert!(hit.is_some());
+        assert_eq!(hit.unwrap().ray_t, 10.0);
+
+        let hit = intersect_composite(
+            &objects,
+            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 0.0)),
+        );
+        assert!(hit.is_none());
+
+        let hit = intersect_composite(
+            &objects,
+            &Ray::new(Vec3::new(0.0, 0.0, 50.0), Vec3::new(0.0, 0.0, -1.0)),
+        );
+        assert!(hit.is_some());
+        assert_eq!(hit.unwrap().ray_t, 20.0);
+
+        let hit = intersect_composite(
+            &objects,
+            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(20.0, 0.0, 20.0)),
+        );
+        assert!(hit.is_some());
+        assert_relative_eq!(
+            hit.unwrap().ray_t,
+            (20.0_f32.powf(2.0) + 20.0_f32.powf(2.0)).sqrt() - 10.0 // t = sqrt(x² + y² + z²) - r = sqrt(20² + 0² + 20²) - 10
+        );
     }
 }
