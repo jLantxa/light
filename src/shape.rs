@@ -17,14 +17,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::algebra::{self, Vec3};
+use glm;
+
+use crate::algebra;
 use crate::light::Ray;
 
 #[derive(Debug, PartialEq)]
 pub struct HitRecord {
     pub ray_t: f64,
-    pub point: Vec3,
-    pub normal: Vec3,
+    pub point: glm::DVec3,
+    pub normal: glm::DVec3,
 }
 
 pub trait Shape {
@@ -45,16 +47,16 @@ fn closest_facing_solution((t1, t2): (f64, f64)) -> Option<f64> {
 }
 
 pub struct Sphere {
-    center: Vec3,
+    center: glm::DVec3,
     radius: f64,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
+    pub fn new(center: glm::DVec3, radius: f64) -> Self {
         Self { center, radius }
     }
 
-    pub fn center(&self) -> Vec3 {
+    pub fn center(&self) -> glm::DVec3 {
         self.center
     }
 
@@ -62,20 +64,20 @@ impl Sphere {
         self.radius
     }
 
-    pub fn normal(&self, intersection: &Vec3, direction: &Vec3) -> Vec3 {
+    pub fn normal(&self, intersection: &glm::DVec3, direction: &glm::DVec3) -> glm::DVec3 {
         // -(d*n)n / |(d*n)n|
         let surf_normal = &self.center - intersection;
-        (direction.dot(surf_normal) * surf_normal).normal()
+        (direction.dot(&surf_normal) * surf_normal).normalize()
     }
 }
 
 impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
-        let oc: Vec3 = ray.origin - self.center;
-        let d: Vec3 = ray.direction;
+        let oc: glm::DVec3 = ray.origin - self.center;
+        let d: glm::DVec3 = ray.direction;
 
         let a: f64 = d.norm().powf(2.0);
-        let b: f64 = 2.0 * oc.dot(d);
+        let b: f64 = 2.0 * oc.dot(&d);
         let c: f64 = oc.norm().powf(2.0) - self.radius.powf(2.0);
 
         let solutions = algebra::solve_deg2_eq(a, b, c);
@@ -118,30 +120,39 @@ mod test {
 
     #[test]
     fn intersect_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, -1.0));
+        let sphere = Sphere::new(glm::DVec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(
+            glm::DVec3::new(0.0, 0.0, 20.0),
+            glm::DVec3::new(0.0, 0.0, -1.0),
+        );
 
         let hit = sphere.intersect(&ray).expect("Expected some HitRecord");
 
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), hit.point);
-        assert_relative_eq!(Vec3::new(0.0, 0.0, -1.0), hit.normal);
+        assert_relative_eq!(glm::DVec3::new(0.0, 0.0, 10.0), hit.point);
+        assert_relative_eq!(glm::DVec3::new(0.0, 0.0, -1.0), hit.normal);
     }
 
     #[test]
     fn intersect_from_inside_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+        let sphere = Sphere::new(glm::DVec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(
+            glm::DVec3::new(0.0, 0.0, 0.0),
+            glm::DVec3::new(0.0, 0.0, 1.0),
+        );
 
         let hit_record = sphere.intersect(&ray).expect("Expected some HitRecord");
 
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 10.0), hit_record.point);
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0), hit_record.normal);
+        assert_relative_eq!(glm::DVec3::new(0.0, 0.0, 10.0), hit_record.point);
+        assert_relative_eq!(glm::DVec3::new(0.0, 0.0, 1.0), hit_record.normal);
     }
 
     #[test]
     fn no_intersect_behind_sphere() {
-        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 10.0);
-        let ray = Ray::new(Vec3::new(0.0, 0.0, 20.0), Vec3::new(0.0, 0.0, 1.0));
+        let sphere = Sphere::new(glm::DVec3::new(0.0, 0.0, 0.0), 10.0);
+        let ray = Ray::new(
+            glm::DVec3::new(0.0, 0.0, 20.0),
+            glm::DVec3::new(0.0, 0.0, 1.0),
+        );
 
         let hit = sphere.intersect(&ray);
         assert_eq!(hit, None);

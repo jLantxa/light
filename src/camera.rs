@@ -17,10 +17,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use glm;
+
 use rand::{rngs::ThreadRng, Rng};
 use std::f64::consts::PI;
 
-use crate::algebra::{self, Vec3, UNIT_Y};
+use crate::algebra;
 use crate::light::Ray;
 
 #[derive(Debug, Clone, Copy)]
@@ -49,8 +51,8 @@ impl Default for FocusMode {
 
 #[derive(Default, Debug)]
 pub struct CameraConfig {
-    pub position: Vec3,
-    pub direction: Vec3,
+    pub position: glm::DVec3,
+    pub direction: glm::DVec3,
     pub resolution: (u32, u32),
     pub rotation: f64,
     pub fov: FieldOfView,
@@ -59,10 +61,10 @@ pub struct CameraConfig {
 
 #[derive(Default, Debug)]
 struct CoordinateSystem {
-    origin: Vec3,
-    u: Vec3, // unit x =: y <cross> z
-    v: Vec3, // unit y =: z <cross> x
-    w: Vec3, // unit z =: x <cross> y
+    origin: glm::DVec3,
+    u: glm::DVec3, // unit x =: y <cross> z
+    v: glm::DVec3, // unit y =: z <cross> x
+    w: glm::DVec3, // unit z =: x <cross> y
 }
 
 #[derive(Default, Debug)]
@@ -74,13 +76,13 @@ pub struct Camera {
     focus_mode: FocusMode,
 
     distance_to_plane: f64,
-    first_pixel_pos: Vec3,
+    first_pixel_pos: glm::DVec3,
     pixel_width: f64,
     pixel_height: f64,
 }
 
 impl CoordinateSystem {
-    pub fn new(origin: Vec3, u: Vec3, v: Vec3, w: Vec3) -> Self {
+    pub fn new(origin: glm::DVec3, u: glm::DVec3, v: glm::DVec3, w: glm::DVec3) -> Self {
         Self { origin, u, v, w }
     }
 }
@@ -93,11 +95,11 @@ impl Camera {
         return camera;
     }
 
-    pub fn position(&self) -> Vec3 {
+    pub fn position(&self) -> glm::DVec3 {
         self.coordinate_system.origin
     }
 
-    pub fn direction(&self) -> Vec3 {
+    pub fn direction(&self) -> glm::DVec3 {
         self.coordinate_system.w
     }
 
@@ -114,7 +116,7 @@ impl Camera {
     }
 
     pub fn config(&mut self, config: &CameraConfig) -> Result<(), &str> {
-        const WORLD_UP: Vec3 = UNIT_Y;
+        const WORLD_UP: glm::DVec3 = glm::DVec3::new(0.0, 1.0, 0.0);
 
         if (config.resolution.0 * config.resolution.1) == 0 {
             return Err("The camera resolution cannot be zero");
@@ -142,13 +144,13 @@ impl Camera {
 
         // Set coordinates
         self.coordinate_system.origin = config.position;
-        self.coordinate_system.w = config.direction.normal();
-        self.coordinate_system.u = self.coordinate_system.w.cross(WORLD_UP).normal();
+        self.coordinate_system.w = config.direction.normalize();
+        self.coordinate_system.u = self.coordinate_system.w.cross(&WORLD_UP).normalize();
         self.coordinate_system.v = self
             .coordinate_system
             .u
-            .cross(self.coordinate_system.w)
-            .normal();
+            .cross(&self.coordinate_system.w)
+            .normalize();
 
         // Apply rotation
         if self.rotation != 0.0_f64 {
@@ -262,8 +264,8 @@ mod tests {
     #[test]
     fn sample_pinhole() {
         let config = CameraConfig {
-            position: Vec3::zero(),
-            direction: algebra::UNIT_Z,
+            position: glm::DVec3::zeros(),
+            direction: glm::DVec3::z(),
             resolution: (800, 600),
             rotation: 0.0_f64,
             fov: FieldOfView::Horizontal(90f64.to_radians()),
@@ -275,7 +277,7 @@ mod tests {
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
-                assert_eq!(Vec3::zero(), ray.unwrap().origin);
+                assert_eq!(glm::DVec3::zeros(), ray.unwrap().origin);
             }
         }
     }
@@ -284,8 +286,8 @@ mod tests {
     fn sample_aperture() {
         let aperture: f64 = 0.1;
         let config = CameraConfig {
-            position: Vec3::zero(),
-            direction: algebra::UNIT_Z,
+            position: glm::DVec3::zeros(),
+            direction: glm::DVec3::z(),
             resolution: (800, 600),
             rotation: 0.0_f64,
             fov: FieldOfView::Horizontal(90f64.to_radians()),

@@ -17,23 +17,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::algebra::Vec3;
+use glm;
 
 #[derive(Debug, PartialEq)]
 pub struct Ray {
-    pub origin: Vec3,
-    pub direction: Vec3,
+    pub origin: glm::DVec3,
+    pub direction: glm::DVec3,
 }
 
 impl Ray {
-    pub fn new(origin: Vec3, direction: Vec3) -> Self {
+    pub fn new(origin: glm::DVec3, direction: glm::DVec3) -> Self {
         Self {
             origin: origin,
-            direction: direction.normal(),
+            direction: direction.normalize(),
         }
     }
 
-    pub fn point_at(&self, t: f64) -> Vec3 {
+    pub fn point_at(&self, t: f64) -> glm::DVec3 {
         self.origin + (t * self.direction)
     }
 }
@@ -45,11 +45,14 @@ mod test {
 
     #[test]
     fn point_at() {
-        let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0));
+        let ray = Ray::new(
+            glm::DVec3::new(1.0, 1.0, 1.0),
+            glm::DVec3::new(1.0, 1.0, 1.0),
+        );
 
         let component: f64 = (3.0 + 3.0_f64.sqrt()) / 3.0;
         assert_relative_eq!(
-            Vec3::new(component, component, component),
+            glm::DVec3::new(component, component, component),
             ray.point_at(1.0)
         );
     }
