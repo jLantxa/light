@@ -44,27 +44,6 @@ fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
     }
 }
 
-pub fn intersect_composite(objects: &Vec<Box<dyn Shape>>, ray: &Ray) -> Option<HitRecord> {
-    let mut closest_hit: Option<HitRecord> = None;
-
-    for object in objects {
-        let hit = object.intersect(&ray);
-        if hit.is_none() {
-            continue;
-        }
-
-        let hit = hit.unwrap();
-        if closest_hit.is_none()
-            || ((hit.ray_t >= 0.0) && (hit.ray_t < closest_hit.as_ref().unwrap().ray_t))
-        {
-            let hit = hit;
-            closest_hit.replace(hit);
-        }
-    }
-
-    closest_hit
-}
-
 pub struct Sphere {
     center: Vec3,
     radius: f32,
@@ -123,18 +102,6 @@ impl Shape for Sphere {
     }
 }
 
-pub struct Composite {
-    // bounding_box: Cube
-    pub objects: Vec<Box<dyn Shape>>,
-}
-
-impl Shape for Composite {
-    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
-        // If no interset bounding box, return None
-        return intersect_composite(&self.objects, &ray);
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -178,44 +145,5 @@ mod test {
 
         let hit = sphere.intersect(&ray);
         assert_eq!(hit, None);
-    }
-
-    #[test]
-    fn test_intersect_composite() {
-        let objects: Vec<Box<dyn Shape>> = vec![
-            Box::new(Sphere::new(Vec3::new(0.0, 0.0, 20.0), 10.0)),
-            Box::new(Sphere::new(Vec3::new(0.0, 0.0, 20.0), 10.0)),
-            Box::new(Sphere::new(Vec3::new(20.0, 0.0, 20.0), 10.0)),
-        ];
-
-        let hit = intersect_composite(
-            &objects,
-            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
-        );
-        assert!(hit.is_some());
-        assert_eq!(hit.unwrap().ray_t, 10.0);
-
-        let hit = intersect_composite(
-            &objects,
-            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 0.0)),
-        );
-        assert!(hit.is_none());
-
-        let hit = intersect_composite(
-            &objects,
-            &Ray::new(Vec3::new(0.0, 0.0, 50.0), Vec3::new(0.0, 0.0, -1.0)),
-        );
-        assert!(hit.is_some());
-        assert_eq!(hit.unwrap().ray_t, 20.0);
-
-        let hit = intersect_composite(
-            &objects,
-            &Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(20.0, 0.0, 20.0)),
-        );
-        assert!(hit.is_some());
-        assert_relative_eq!(
-            hit.unwrap().ray_t,
-            (20.0_f32.powf(2.0) + 20.0_f32.powf(2.0)).sqrt() - 10.0 // t = sqrt(x² + y² + z²) - r = sqrt(20² + 0² + 20²) - 10
-        );
     }
 }
