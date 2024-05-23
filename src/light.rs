@@ -33,7 +33,7 @@ impl Ray {
         }
     }
 
-    pub fn point_at(&self, t: f32) -> Vec3 {
+    pub fn point_at(&self, t: f64) -> Vec3 {
         self.origin + (t * self.direction)
     }
 }
@@ -47,7 +47,7 @@ mod test {
     fn point_at() {
         let ray = Ray::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(1.0, 1.0, 1.0));
 
-        let component: f32 = (3.0 + 3.0_f32.sqrt()) / 3.0;
+        let component: f64 = (3.0 + 3.0_f64.sqrt()) / 3.0;
         assert_relative_eq!(
             Vec3::new(component, component, component),
             ray.point_at(1.0)

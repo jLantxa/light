@@ -18,26 +18,26 @@
 */
 
 use rand::{rngs::ThreadRng, Rng};
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 
 use crate::algebra::{self, Vec3, UNIT_Y};
 use crate::light::Ray;
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldOfView {
-    Horizontal(f32),
-    Vertical(f32),
+    Horizontal(f64),
+    Vertical(f64),
 }
 
 impl Default for FieldOfView {
     fn default() -> Self {
-        Self::Vertical(90.0_f32.to_radians())
+        Self::Vertical(90.0_f64.to_radians())
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum FocusMode {
-    FocalPlane { focal_distance: f32, aperture: f32 },
+    FocalPlane { focal_distance: f64, aperture: f64 },
     PinHole,
 }
 
@@ -52,7 +52,7 @@ pub struct CameraConfig {
     pub position: Vec3,
     pub direction: Vec3,
     pub resolution: (u32, u32),
-    pub rotation: f32,
+    pub rotation: f64,
     pub fov: FieldOfView,
     pub focus_mode: FocusMode,
 }
@@ -68,15 +68,15 @@ struct CoordinateSystem {
 #[derive(Default, Debug)]
 pub struct Camera {
     coordinate_system: CoordinateSystem, // Coordinate system (origin and base vectors)
-    rotation: f32,                       // Rotation, in the positive sense, around the facing axis
+    rotation: f64,                       // Rotation, in the positive sense, around the facing axis
     resolution: (u32, u32),              // Resolutions (width, height) in pixels
     fov: FieldOfView,                    // Field of view (Horizontal or Vertical) in radians
     focus_mode: FocusMode,
 
-    distance_to_plane: f32,
+    distance_to_plane: f64,
     first_pixel_pos: Vec3,
-    pixel_width: f32,
-    pixel_height: f32,
+    pixel_width: f64,
+    pixel_height: f64,
 }
 
 impl CoordinateSystem {
@@ -101,7 +101,7 @@ impl Camera {
         self.coordinate_system.w
     }
 
-    pub fn rotation(&self) -> f32 {
+    pub fn rotation(&self) -> f64 {
         self.rotation
     }
 
@@ -151,7 +151,7 @@ impl Camera {
             .normal();
 
         // Apply rotation
-        if self.rotation != 0.0_f32 {
+        if self.rotation != 0.0_f64 {
             self.coordinate_system.u = algebra::rotate_vector(
                 &self.coordinate_system.u,
                 &self.coordinate_system.w,
@@ -167,8 +167,8 @@ impl Camera {
         }
 
         // Calculate distance to plane using fov and focus parameters
-        let aspect_ratio: f32 = (self.resolution.0 as f32) / (self.resolution.1 as f32);
-        let (sensor_width, sensor_height): (f32, f32) = match config.focus_mode {
+        let aspect_ratio: f64 = (self.resolution.0 as f64) / (self.resolution.1 as f64);
+        let (sensor_width, sensor_height): (f64, f64) = match config.focus_mode {
             FocusMode::FocalPlane {
                 focal_distance,
                 aperture,
@@ -206,8 +206,8 @@ impl Camera {
         self.focus_mode = config.focus_mode;
 
         // Calculate pixel size
-        self.pixel_width = sensor_width / (self.resolution.0 as f32);
-        self.pixel_height = sensor_height / (self.resolution.1 as f32);
+        self.pixel_width = sensor_width / (self.resolution.0 as f64);
+        self.pixel_height = sensor_height / (self.resolution.1 as f64);
 
         // Calculate position for first pixel
         self.first_pixel_pos = self.coordinate_system.origin
@@ -231,8 +231,8 @@ impl Camera {
                 aperture,
             } => {
                 // Uniform sample of the aperture disc
-                let r: f32 = (aperture / 2.0) * rng.gen::<f32>().sqrt();
-                let phi: f32 = rng.gen_range(0.0..2.0 * PI);
+                let r: f64 = (aperture / 2.0) * rng.gen::<f64>().sqrt();
+                let phi: f64 = rng.gen_range(0.0..2.0 * PI);
 
                 // Distances from origin (within the disc)
                 let dx = r * phi.cos();
@@ -245,8 +245,8 @@ impl Camera {
         };
 
         let pixel_position = self.first_pixel_pos
-            + ((i as f32) * self.pixel_width * self.coordinate_system.u)
-            - ((j as f32) * self.pixel_height * self.coordinate_system.v);
+            + ((i as f64) * self.pixel_width * self.coordinate_system.u)
+            - ((j as f64) * self.pixel_height * self.coordinate_system.v);
         let ray_direction = pixel_position - ray_origin;
 
         Some(Ray::new(ray_origin, ray_direction))
@@ -265,8 +265,8 @@ mod tests {
             position: Vec3::zero(),
             direction: algebra::UNIT_Z,
             resolution: (800, 600),
-            rotation: 0.0_f32,
-            fov: FieldOfView::Horizontal(90f32.to_radians()),
+            rotation: 0.0_f64,
+            fov: FieldOfView::Horizontal(90f64.to_radians()),
             focus_mode: FocusMode::PinHole,
         };
         let camera = Camera::new(&config);
@@ -282,13 +282,13 @@ mod tests {
 
     #[test]
     fn sample_aperture() {
-        let aperture: f32 = 0.1;
+        let aperture: f64 = 0.1;
         let config = CameraConfig {
             position: Vec3::zero(),
             direction: algebra::UNIT_Z,
             resolution: (800, 600),
-            rotation: 0.0_f32,
-            fov: FieldOfView::Horizontal(90f32.to_radians()),
+            rotation: 0.0_f64,
+            fov: FieldOfView::Horizontal(90f64.to_radians()),
             focus_mode: FocusMode::FocalPlane {
                 focal_distance: 1.0,
                 aperture,

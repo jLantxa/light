@@ -21,9 +21,9 @@ use approx::{abs_diff_eq, relative_eq};
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 pub const UNIT_X: Vec3 = Vec3::new(1.0, 0.0, 0.0);
@@ -31,7 +31,7 @@ pub const UNIT_Y: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 pub const UNIT_Z: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 
 impl Vec3 {
-    pub const fn new(x: f32, y: f32, z: f32) -> Self {
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
 
@@ -55,11 +55,11 @@ impl Vec3 {
         UNIT_Z
     }
 
-    pub fn norm2(&self) -> f32 {
+    pub fn norm2(&self) -> f64 {
         self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0)
     }
 
-    pub fn norm(&self) -> f32 {
+    pub fn norm(&self) -> f64 {
         self.norm2().sqrt()
     }
 
@@ -80,7 +80,7 @@ impl Vec3 {
         self.z /= norm;
     }
 
-    pub fn dot(&self, other: Self) -> f32 {
+    pub fn dot(&self, other: Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
@@ -141,11 +141,11 @@ impl<'a, 'b> std::ops::Sub<&'b Vec3> for &'a Vec3 {
     }
 }
 
-/// Right side multiplication with f32
-impl std::ops::Mul<f32> for Vec3 {
+/// Right side multiplication with f64
+impl std::ops::Mul<f64> for Vec3 {
     type Output = Vec3;
 
-    fn mul(self, scalar: f32) -> Self::Output {
+    fn mul(self, scalar: f64) -> Self::Output {
         Self::Output {
             x: scalar * self.x,
             y: scalar * self.y,
@@ -154,8 +154,8 @@ impl std::ops::Mul<f32> for Vec3 {
     }
 }
 
-/// Left side multiplication with f32
-impl std::ops::Mul<Vec3> for f32 {
+/// Left side multiplication with f64
+impl std::ops::Mul<Vec3> for f64 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Self::Output {
@@ -180,10 +180,10 @@ impl std::ops::Neg for Vec3 {
 }
 
 impl approx::AbsDiffEq for Vec3 {
-    type Epsilon = f32;
+    type Epsilon = f64;
 
     fn default_epsilon() -> Self::Epsilon {
-        std::f32::EPSILON
+        std::f64::EPSILON
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
@@ -194,8 +194,8 @@ impl approx::AbsDiffEq for Vec3 {
 }
 
 impl approx::RelativeEq for Vec3 {
-    fn default_max_relative() -> f32 {
-        std::f32::EPSILON
+    fn default_max_relative() -> f64 {
+        std::f64::EPSILON
     }
 
     fn relative_eq(
@@ -210,9 +210,9 @@ impl approx::RelativeEq for Vec3 {
     }
 }
 
-pub fn solve_deg2_eq(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
+pub fn solve_deg2_eq(a: f64, b: f64, c: f64) -> Option<(f64, f64)> {
     if a != 0.0 {
-        let discriminant: f32 = (b * b) - (4.0 * a * c);
+        let discriminant: f64 = (b * b) - (4.0 * a * c);
 
         if discriminant > 0.0 {
             let sqrt_discriminant = discriminant.sqrt();
@@ -243,13 +243,13 @@ pub fn solve_deg2_eq(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
 
 /// Rotate a vector around an axis using Rodrigues' formula
 /// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
-pub fn rotate_vector(v: &Vec3, k: &Vec3, theta: f32) -> Vec3 {
+pub fn rotate_vector(v: &Vec3, k: &Vec3, theta: f64) -> Vec3 {
     // Assuming k is a unit vector and theta is an angle in radians
 
     let cos_th = theta.cos();
     let sin_th = theta.sin();
 
-    (*v * cos_th) + (k.cross(*v) * sin_th) + (*k * (k.dot(*v)) * (1.0_f32 - cos_th))
+    (*v * cos_th) + (k.cross(*v) * sin_th) + (*k * (k.dot(*v)) * (1.0_f64 - cos_th))
 }
 
 #[cfg(test)]
@@ -290,13 +290,13 @@ mod tests {
         #[test]
         fn norm() {
             let v = Vec3::new(1.0, 1.0, 1.0);
-            assert_relative_eq!(3.0_f32.sqrt(), v.norm());
+            assert_relative_eq!(3.0_f64.sqrt(), v.norm());
         }
 
         #[test]
         fn norm2() {
             let v = Vec3::new(1.0, 1.0, 1.0);
-            assert_relative_eq!(3.0_f32, v.norm2());
+            assert_relative_eq!(3.0_f64, v.norm2());
         }
 
         #[test]
@@ -304,14 +304,14 @@ mod tests {
             let mut v = Vec3::new(1.0, 2.0, 3.0);
             v.normalize();
 
-            assert_relative_eq!(1.0_f32, v.norm());
+            assert_relative_eq!(1.0_f64, v.norm());
         }
 
         #[test]
         fn normal() {
             let v = Vec3::new(1.0, 1.0, 1.0);
 
-            let component: f32 = 1.0 / (3.0_f32.sqrt());
+            let component: f64 = 1.0 / (3.0_f64.sqrt());
             assert_relative_eq!(Vec3::new(component, component, component), v.normal());
         }
 
@@ -392,28 +392,28 @@ mod tests {
     fn rotate_vectors() {
         let v = Vec3::new(0.0, 1.0, 0.0);
         let k = Vec3::new(0.0, 0.0, 1.0);
-        let v_rot = rotate_vector(&v, &k, 45.0_f32.to_radians());
+        let v_rot = rotate_vector(&v, &k, 45.0_f64.to_radians());
         assert_relative_eq!(
-            Vec3::new(-2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0, 0.0),
+            Vec3::new(-2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0),
             v_rot
         );
 
         let v = Vec3::new(0.0, 1.0, 0.0);
         let k = Vec3::new(0.0, 0.0, 1.0);
-        let v_rot = rotate_vector(&v, &k, 90.0_f32.to_radians());
+        let v_rot = rotate_vector(&v, &k, 90.0_f64.to_radians());
         assert_relative_eq!(Vec3::new(-1.0, 0.0, 0.0), v_rot);
 
         let v = Vec3::new(0.0, 1.0, 0.0);
         let k = Vec3::new(1.0, 0.0, 0.0);
-        let v_rot = rotate_vector(&v, &k, 45.0_f32.to_radians());
+        let v_rot = rotate_vector(&v, &k, 45.0_f64.to_radians());
         assert_relative_eq!(
-            Vec3::new(0.0, 2.0_f32.sqrt() / 2.0, 2.0_f32.sqrt() / 2.0),
+            Vec3::new(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
             v_rot
         );
 
         let v = Vec3::new(0.0, 1.0, 0.0);
         let k = Vec3::new(1.0, 0.0, 0.0);
-        let v_rot = rotate_vector(&v, &k, 90.0_f32.to_radians());
-        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0_f32), v_rot);
+        let v_rot = rotate_vector(&v, &k, 90.0_f64.to_radians());
+        assert_relative_eq!(Vec3::new(0.0, 0.0, 1.0_f64), v_rot);
     }
 }

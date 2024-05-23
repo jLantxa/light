@@ -22,7 +22,7 @@ use crate::light::Ray;
 
 #[derive(Debug, PartialEq)]
 pub struct HitRecord {
-    pub ray_t: f32,
+    pub ray_t: f64,
     pub point: Vec3,
     pub normal: Vec3,
 }
@@ -32,7 +32,7 @@ pub trait Shape {
 }
 
 /// Returns the closest positive distance (facing the direction of a Ray)
-fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
+fn closest_facing_solution((t1, t2): (f64, f64)) -> Option<f64> {
     assert!(t1 <= t2);
 
     if t1 >= 0.0 {
@@ -46,11 +46,11 @@ fn closest_facing_solution((t1, t2): (f32, f32)) -> Option<f32> {
 
 pub struct Sphere {
     center: Vec3,
-    radius: f32,
+    radius: f64,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
+    pub fn new(center: Vec3, radius: f64) -> Self {
         Self { center, radius }
     }
 
@@ -58,7 +58,7 @@ impl Sphere {
         self.center
     }
 
-    pub fn radius(&self) -> f32 {
+    pub fn radius(&self) -> f64 {
         self.radius
     }
 
@@ -74,9 +74,9 @@ impl Shape for Sphere {
         let oc: Vec3 = ray.origin - self.center;
         let d: Vec3 = ray.direction;
 
-        let a: f32 = d.norm().powf(2.0);
-        let b: f32 = 2.0 * oc.dot(d);
-        let c: f32 = oc.norm().powf(2.0) - self.radius.powf(2.0);
+        let a: f64 = d.norm().powf(2.0);
+        let b: f64 = 2.0 * oc.dot(d);
+        let c: f64 = oc.norm().powf(2.0) - self.radius.powf(2.0);
 
         let solutions = algebra::solve_deg2_eq(a, b, c);
 
