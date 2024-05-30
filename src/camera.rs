@@ -19,7 +19,7 @@
 
 use glm;
 
-use rand::{rngs::ThreadRng, Rng};
+use rand::{rngs::StdRng, Rng};
 use std::f64::consts::PI;
 
 use crate::algebra;
@@ -39,7 +39,10 @@ impl Default for FieldOfView {
 
 #[derive(Debug, Clone, Copy)]
 pub enum FocusMode {
-    FocalPlane { focal_distance: f64, aperture: f64 },
+    FocalPlane {
+        focal_distance: f64, // [m]
+        aperture: f64,       // Aperture radius [m]
+    },
     PinHole,
 }
 
@@ -221,7 +224,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    pub fn cast_ray(&self, i: u32, j: u32, rng: &mut ThreadRng) -> Option<Ray> {
+    pub fn cast_ray(&self, i: u32, j: u32, rng: &mut StdRng) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
@@ -233,16 +236,10 @@ impl Camera {
                 aperture,
             } => {
                 // Uniform sample of the aperture disc
-                let r: f64 = (aperture / 2.0) * rng.gen::<f64>().sqrt();
-                let phi: f64 = rng.gen_range(0.0..2.0 * PI);
-
-                // Distances from origin (within the disc)
-                let dx = r * phi.cos();
-                let dy = r * phi.sin();
+                let [x, y]: [f64; 2] = rng.sample(rand_distr::UnitDisc);
 
                 self.coordinate_system.origin
-                    + dx * self.coordinate_system.u
-                    + dy * self.coordinate_system.v
+                    + aperture * (x * self.coordinate_system.u + y * self.coordinate_system.v)
             }
         };
 
@@ -258,6 +255,7 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
+    use rand::{rngs, SeedableRng};
 
     use super::*;
 
@@ -273,7 +271,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = rand::thread_rng();
+        let mut rng = StdRng::seed_from_u64(45510);
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
@@ -298,7 +296,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = rand::thread_rng();
+        let mut rng = StdRng::seed_from_u64(45510);
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
@@ -306,7 +304,7 @@ mod tests {
                 let x = ray_origin.x;
                 let y = ray_origin.y;
                 let z = ray_origin.z;
-                assert!((x.powf(2.0) + y.powf(2.0)).sqrt() <= (aperture / 2.0));
+                assert!((x.powf(2.0) + y.powf(2.0)).sqrt() <= aperture);
                 assert_relative_eq!(0.0, z);
             }
         }
