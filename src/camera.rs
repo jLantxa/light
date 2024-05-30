@@ -1,5 +1,5 @@
 /*
- * light is a spectral path tracer written in Rust for educational purposes
+ * light is a path tracer written in Rust for educational purposes
  *
  * Copyright (C) 2024  Javier Lancha Vázquez
  *
