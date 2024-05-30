@@ -46,6 +46,7 @@ fn closest_facing_solution((t1, t2): (f64, f64)) -> Option<f64> {
     }
 }
 
+#[derive(Debug)]
 pub struct Sphere {
     center: glm::DVec3,
     radius: f64,

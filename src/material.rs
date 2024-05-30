@@ -18,21 +18,10 @@
 */
 
 use crate::color::Color;
-use crate::object::Object;
-#[derive(Default)]
-pub struct Scene {
-    pub objects: Vec<Object>,
-    pub background_color: Color,
-}
 
-impl Scene {
-    pub fn add_object(&mut self, object: Object) {
-        self.objects.push(object);
-    }
-
-    pub fn get_objects(&self) -> &Vec<Object> {
-        self.objects.as_ref()
-    }
+#[derive(Debug)]
+pub struct Material {
+    pub color: Color,
 }
 
 #[cfg(test)]

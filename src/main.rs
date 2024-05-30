@@ -19,7 +19,10 @@
 
 mod algebra;
 mod camera;
+mod color;
 mod light;
+mod material;
+mod object;
 mod scene;
 mod shape;
 
