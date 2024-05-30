@@ -17,23 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::color::Color;
-use crate::object::Object;
-#[derive(Default)]
-pub struct Scene {
-    pub objects: Vec<Object>,
-    pub background_color: Color,
-}
-
-impl Scene {
-    pub fn add_object(&mut self, object: Object) {
-        self.objects.push(object);
-    }
-
-    pub fn get_objects(&self) -> &Vec<Object> {
-        self.objects.as_ref()
-    }
-}
+pub type Color = glm::DVec3;
 
 #[cfg(test)]
 mod test {

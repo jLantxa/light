@@ -17,21 +17,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::color::Color;
-use crate::object::Object;
-#[derive(Default)]
-pub struct Scene {
-    pub objects: Vec<Object>,
-    pub background_color: Color,
+use crate::light::Ray;
+use crate::material::Material;
+use crate::shape::{HitRecord, Shape};
+
+pub struct Object {
+    pub shape: Box<dyn Shape>,
+    pub material: Material,
 }
 
-impl Scene {
-    pub fn add_object(&mut self, object: Object) {
-        self.objects.push(object);
-    }
-
-    pub fn get_objects(&self) -> &Vec<Object> {
-        self.objects.as_ref()
+impl Object {
+    pub fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        self.shape.intersect(ray)
     }
 }
 
