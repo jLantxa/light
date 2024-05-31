@@ -26,8 +26,13 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn add_object(&mut self, object: Object) {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add_object(&mut self, object: Object) -> &mut Self {
         self.objects.push(object);
+        self
     }
 
     pub fn get_objects(&self) -> &Vec<Object> {
