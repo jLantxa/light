@@ -162,13 +162,13 @@ impl Camera {
                 &self.coordinate_system.w,
                 self.rotation,
             );
-            self.coordinate_system.u.normalize();
+            self.coordinate_system.u.normalize_mut();
             self.coordinate_system.v = algebra::rotate_vector(
                 &self.coordinate_system.v,
                 &self.coordinate_system.w,
                 self.rotation,
             );
-            self.coordinate_system.v.normalize();
+            self.coordinate_system.v.normalize_mut();
         }
 
         // Calculate distance to plane using fov and focus parameters
