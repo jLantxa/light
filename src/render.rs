@@ -70,7 +70,6 @@ impl PathTracer {
         for (i, j, rgb) in image.enumerate_pixels_mut() {
             let mut color = Color::zeros();
             for n in 0..self.spp {
-                println!("{}, {}, {}", i, j, n);
                 let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
                 color += self.trace_ray(&scene, &ray, 0);
             }
@@ -89,9 +88,7 @@ impl PathTracer {
         match closest_hit {
             None => scene.background_color,
             Some((record, object)) => {
-                println!("Hit");
-                let material = &object.material;
-                material.color
+                todo!()
             }
         }
     }
