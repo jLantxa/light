@@ -29,6 +29,22 @@ pub struct HitRecord {
     pub normal: glm::DVec3,
 }
 
+impl Default for HitRecord {
+    fn default() -> Self {
+        Self {
+            ray_t: f64::INFINITY,
+            point: glm::DVec3::zeros(),
+            normal: glm::DVec3::zeros(),
+        }
+    }
+}
+
+impl HitRecord {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<HitRecord>;
 }

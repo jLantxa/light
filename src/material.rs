@@ -17,11 +17,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use rand::rngs::StdRng;
+
 use crate::color::Color;
 
 #[derive(Debug)]
 pub struct Material {
     pub color: Color,
+}
+
+impl Material {
+    pub fn bsdf(normal: &glm::DVec3, vin: &glm::DVec3, vout: &glm::DVec3) -> Color {
+        Color::zeros()
+    }
+
+    pub fn sample_bounce(normal: &glm::DVec3, vin: &glm::DVec3, rng: &mut StdRng) -> glm::DVec3 {
+        normal.clone()
+    }
 }
 
 #[cfg(test)]
