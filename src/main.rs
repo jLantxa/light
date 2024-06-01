@@ -44,24 +44,35 @@ fn main() {
             shape: Box::new(Sphere::new(glm::DVec3::new(-30.0, 10.0, 50.0), 10.0)),
             material: Material {
                 color: Color::new(255.0, 0.0, 0.0),
+                ..Default::default()
             },
         })
         .add_object(Object {
             shape: Box::new(Sphere::new(glm::DVec3::new(-0.0, 10.0, 50.0), 10.0)),
             material: Material {
                 color: Color::new(0.0, 255.0, 0.0),
+                ..Default::default()
             },
         })
         .add_object(Object {
             shape: Box::new(Sphere::new(glm::DVec3::new(30.0, 10.0, 50.0), 10.0)),
             material: Material {
                 color: Color::new(0.0, 0.0, 255.0),
+                ..Default::default()
             },
         })
         .add_object(Object {
             shape: Box::new(Sphere::new(glm::DVec3::new(0.0, -100000.0, 0.0), 100000.0)),
             material: Material {
                 color: Color::new(128.0, 128.0, 128.0),
+                ..Default::default()
+            },
+        })
+        .add_object(Object {
+            shape: Box::new(Sphere::new(glm::DVec3::new(0.0, 100.0, 0.0), 1.0)),
+            material: Material {
+                color: Color::new(255.0, 255.0, 255.0),
+                emittance: 1.0,
             },
         });
 

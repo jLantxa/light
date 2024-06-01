@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::f64::consts::PI;
 use std::time::SystemTime;
 
 use image::RgbImage;
@@ -71,7 +72,7 @@ impl PathTracer {
             let mut color = Color::zeros();
             for n in 0..self.spp {
                 let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
-                color += self.trace_ray(&scene, &ray, 0);
+                color += self.trace_ray(&scene, &ray, 0, &mut rng);
             }
 
             rgb[0] += (color.x / self.spp as f64).min(255.0) as u8;
@@ -82,13 +83,25 @@ impl PathTracer {
         image
     }
 
-    fn trace_ray(&self, scene: &Scene, ray: &Ray, counter: u32) -> Color {
+    fn trace_ray(&self, scene: &Scene, ray: &Ray, counter: u32, rng: &mut StdRng) -> Color {
         let closest_hit = self.get_closest_hit(&scene.objects, &ray);
 
+        // Indirect
         match closest_hit {
             None => scene.background_color,
             Some((record, object)) => {
-                todo!()
+                let material = &object.material;
+                let vin = material
+                    .sample_bounce(&record.normal, &-ray.direction, rng)
+                    .normalize();
+
+                let new_ray = Ray::new(record.point, vin);
+
+                let mut color = material.color;
+
+                if counter < self.max_depth {}
+
+                color
             }
         }
     }
