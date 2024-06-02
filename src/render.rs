@@ -136,15 +136,19 @@ impl PathTracer {
             None => scene.background_color,
             Some((record, object)) => {
                 let material = &object.material;
+                let vout = &-ray.direction;
                 let vin = material
-                    .sample_bounce(&record.normal, &-ray.direction, rng)
+                    .sample_bounce(&record.normal, vout, rng)
                     .normalize();
 
-                let new_ray = Ray::new(record.point, vin);
+                let mut color = material.emittance * material.color;
 
-                let mut color = material.color;
-
-                if counter < self.max_depth {}
+                if counter < self.max_depth {
+                    let new_ray = Ray::new(record.point, vin);
+                    color += material
+                        .bsdf(&record.normal, &vin, vout)
+                        .component_mul(&self.trace_ray(scene, &new_ray, counter + 1, rng));
+                }
 
                 color
             }
