@@ -95,9 +95,9 @@ fn main() {
     let geo_image = render::render_geometry(&scene, &camera);
     let render_image = render::render_geometry(&scene, &camera);
     geo_image
-        .save_with_format("output_geo.png", image::ImageFormat::Png)
+        .save_with_format("target/output_geo.png", image::ImageFormat::Png)
         .expect("Expected to save file");
     render_image
-        .save_with_format("output.png", image::ImageFormat::Png)
+        .save_with_format("target/output.png", image::ImageFormat::Png)
         .expect("Expected to save file");
 }

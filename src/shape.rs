@@ -62,23 +62,40 @@ fn closest_facing_solution((t1, t2): (f64, f64)) -> Option<f64> {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct Triangle {
+    pub va: glm::DVec3,
+    pub vb: glm::DVec3,
+    pub vc: glm::DVec3,
+    normal: glm::DVec3,
+}
+
+impl Triangle {
+    pub fn new(a: &glm::DVec3, b: &glm::DVec3, c: &glm::DVec3) -> Self {
+        Self {
+            va: *a,
+            vb: *b,
+            vc: *c,
+            normal: (c - a).cross(&(b - a)).normalize(),
+        }
+    }
+}
+
+impl Shape for Triangle {
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        todo!()
+    }
+}
+
 #[derive(Debug)]
 pub struct Sphere {
-    center: glm::DVec3,
-    radius: f64,
+    pub center: glm::DVec3,
+    pub radius: f64,
 }
 
 impl Sphere {
     pub fn new(center: glm::DVec3, radius: f64) -> Self {
         Self { center, radius }
-    }
-
-    pub fn center(&self) -> glm::DVec3 {
-        self.center
-    }
-
-    pub fn radius(&self) -> f64 {
-        self.radius
     }
 
     pub fn normal(&self, intersection: &glm::DVec3, direction: &glm::DVec3) -> glm::DVec3 {
@@ -119,6 +136,28 @@ impl Shape for Sphere {
             }
         }
     }
+}
+
+#[derive(Debug, Default)]
+pub struct Plane {
+    pub position: glm::Vec3,
+    pub normal: glm::Vec3,
+}
+
+impl Plane {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Shape for Plane {
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        todo!()
+    }
+}
+
+fn intersect_plane(pos: &glm::DVec3, normal: glm::DVec3, ray: &Ray) -> Option<f64> {
+    todo!()
 }
 
 #[cfg(test)]
