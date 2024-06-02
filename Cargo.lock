@@ -423,6 +423,7 @@ dependencies = [
  "nalgebra-glm",
  "rand",
  "rand_distr",
+ "rayon",
 ]
 
 [[package]]

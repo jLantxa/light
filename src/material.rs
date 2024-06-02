@@ -18,7 +18,7 @@
 */
 
 use glm::normalize;
-use rand::rngs::StdRng;
+use rand::rngs::ThreadRng;
 
 use crate::color::Color;
 
@@ -37,7 +37,7 @@ impl Material {
         &self,
         normal: &glm::DVec3,
         vin: &glm::DVec3,
-        rng: &mut StdRng,
+        rng: &mut ThreadRng,
     ) -> glm::DVec3 {
         // TODO:
         vin - (2.0 * normal) * (normal.dot(vin))

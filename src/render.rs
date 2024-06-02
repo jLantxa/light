@@ -17,18 +17,64 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::f64::consts::PI;
-use std::time::SystemTime;
-
 use image::RgbImage;
-use rand::rngs::StdRng;
-use rand::{rngs, SeedableRng};
+use rand::rngs::ThreadRng;
+use rand_distr::num_traits::AsPrimitive;
+use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::color::Color;
 use crate::light::Ray;
 use crate::object::Object;
 use crate::shape::HitRecord;
 use crate::{camera::Camera, scene::Scene};
+
+pub fn render_geometry(scene: &Scene, camera: &Camera) -> RgbImage {
+    let (w, h) = camera.resolution();
+    let mut image = image::RgbImage::new(w, h);
+
+    image
+        .enumerate_pixels_mut()
+        .par_bridge()
+        .for_each(|(i, j, rgb)| {
+            let mut rng = rand::thread_rng();
+            let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
+
+            let closest_hit = get_closest_hit(&scene.objects, &ray);
+
+            // Indirect
+            let color = match closest_hit {
+                None => scene.background_color,
+                Some((record, object)) => object.material.color,
+            };
+
+            rgb[0] = color.x.as_();
+            rgb[1] = color.y.as_();
+            rgb[2] = color.z.as_();
+        });
+
+    image
+}
+
+fn get_closest_hit<'a>(objects: &'a Vec<Object>, ray: &Ray) -> Option<(HitRecord, &'a Object)> {
+    let mut closest_hit = HitRecord::new();
+    let mut obj = None;
+
+    for object in objects {
+        let hit = object.intersect(&ray);
+        if hit.is_none() {
+            continue;
+        }
+
+        let hit = hit.unwrap();
+        if hit.ray_t < closest_hit.ray_t {
+            let hit = hit;
+            closest_hit = hit;
+            obj = Some(object);
+        }
+    }
+
+    Some((closest_hit, obj?))
+}
 
 pub struct PathTracer {
     spp: u32,
@@ -60,31 +106,30 @@ impl PathTracer {
     }
 
     pub fn render(&self, scene: &Scene, camera: &Camera) -> RgbImage {
-        let d = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("Duration since UNIX_EPOCH failed");
-        let mut rng = StdRng::seed_from_u64(d.as_secs());
-
         let (w, h) = camera.resolution();
         let mut image = image::RgbImage::new(w, h);
 
-        for (i, j, rgb) in image.enumerate_pixels_mut() {
-            let mut color = Color::zeros();
-            for n in 0..self.spp {
-                let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
-                color += self.trace_ray(&scene, &ray, 0, &mut rng);
-            }
+        image
+            .enumerate_pixels_mut()
+            .par_bridge()
+            .for_each(|(i, j, rgb)| {
+                let mut rng = rand::thread_rng();
+                let mut color = Color::zeros();
+                for n in 0..self.spp {
+                    let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
+                    color += self.trace_ray(&scene, &ray, 0, &mut rng);
+                }
 
-            rgb[0] += (color.x / self.spp as f64).min(255.0) as u8;
-            rgb[1] += (color.y / self.spp as f64).min(255.0) as u8;
-            rgb[2] += (color.z / self.spp as f64).min(255.0) as u8;
-        }
+                rgb[0] += (color.x / self.spp as f64).min(255.0) as u8;
+                rgb[1] += (color.y / self.spp as f64).min(255.0) as u8;
+                rgb[2] += (color.z / self.spp as f64).min(255.0) as u8;
+            });
 
         image
     }
 
-    fn trace_ray(&self, scene: &Scene, ray: &Ray, counter: u32, rng: &mut StdRng) -> Color {
-        let closest_hit = self.get_closest_hit(&scene.objects, &ray);
+    fn trace_ray(&self, scene: &Scene, ray: &Ray, counter: u32, rng: &mut ThreadRng) -> Color {
+        let closest_hit = get_closest_hit(&scene.objects, &ray);
 
         // Indirect
         match closest_hit {
@@ -104,30 +149,5 @@ impl PathTracer {
                 color
             }
         }
-    }
-
-    fn get_closest_hit<'a>(
-        &'a self,
-        objects: &'a Vec<Object>,
-        ray: &Ray,
-    ) -> Option<(HitRecord, &'_ Object)> {
-        let mut closest_hit = HitRecord::new();
-        let mut obj = None;
-
-        for object in objects {
-            let hit = object.intersect(&ray);
-            if hit.is_none() {
-                continue;
-            }
-
-            let hit = hit.unwrap();
-            if hit.ray_t < closest_hit.ray_t {
-                let hit = hit;
-                closest_hit = hit;
-                obj = Some(object);
-            }
-        }
-
-        Some((closest_hit, obj?))
     }
 }

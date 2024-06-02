@@ -79,7 +79,7 @@ fn main() {
     let camera = Camera::new(&CameraConfig {
         position: glm::DVec3::new(0.0, 10.0, 0.0),
         direction: glm::DVec3::new(0.0, -10.0, 50.0),
-        resolution: (400, 300),
+        resolution: (800, 600),
         rotation: 0.0_f64,
         fov: FieldOfView::Horizontal(90f64.to_radians()),
         // focus_mode: FocusMode::FocalPlane {
@@ -90,8 +90,14 @@ fn main() {
     });
 
     let mut renderer = PathTracer::new();
-    renderer.samples_per_pixel(1).max_depth(5);
+    renderer.samples_per_pixel(16).max_depth(5);
 
-    let image = renderer.render(&scene, &camera);
-    let _ = image.save_with_format("output.png", image::ImageFormat::Png);
+    let geo_image = render::render_geometry(&scene, &camera);
+    let render_image = render::render_geometry(&scene, &camera);
+    geo_image
+        .save_with_format("output_geo.png", image::ImageFormat::Png)
+        .expect("Expected to save file");
+    render_image
+        .save_with_format("output.png", image::ImageFormat::Png)
+        .expect("Expected to save file");
 }

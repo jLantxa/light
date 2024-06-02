@@ -22,7 +22,7 @@ use crate::material::Material;
 use crate::shape::{HitRecord, Shape};
 
 pub struct Object {
-    pub shape: Box<dyn Shape>,
+    pub shape: Box<dyn Shape + Sync>,
     pub material: Material,
 }
 

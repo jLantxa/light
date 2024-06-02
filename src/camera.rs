@@ -19,7 +19,7 @@
 
 use glm;
 
-use rand::{rngs::StdRng, Rng};
+use rand::{rngs::ThreadRng, Rng};
 use std::f64::consts::PI;
 
 use crate::algebra;
@@ -224,7 +224,7 @@ impl Camera {
     }
 
     /// Cast a Ray to pixel (i, j)
-    pub fn cast_ray(&self, i: u32, j: u32, rng: &mut StdRng) -> Option<Ray> {
+    pub fn cast_ray(&self, i: u32, j: u32, rng: &mut ThreadRng) -> Option<Ray> {
         if (i >= self.resolution.0) || (j >= self.resolution.1) {
             return None;
         }
@@ -271,7 +271,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = StdRng::seed_from_u64(45510);
+        let mut rng = rand::thread_rng();
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
@@ -296,7 +296,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = StdRng::seed_from_u64(45510);
+        let mut rng = rand::thread_rng();
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
