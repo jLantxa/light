@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use glm;
 
 pub fn solve_deg2_eq(a: f64, b: f64, c: f64) -> Option<(f64, f64)> {
     if a != 0.0 {
@@ -48,17 +47,6 @@ pub fn solve_deg2_eq(a: f64, b: f64, c: f64) -> Option<(f64, f64)> {
             return None;
         }
     }
-}
-
-/// Rotate a vector around an axis using Rodrigues' formula
-/// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
-pub fn rotate_vector(v: &glm::DVec3, k: &glm::DVec3, theta: f64) -> glm::DVec3 {
-    // Assuming k is a unit vector and theta is an angle in radians
-
-    let cos_th = theta.cos();
-    let sin_th = theta.sin();
-
-    (v * cos_th) + (k.cross(v) * sin_th) + (k * (k.dot(v)) * (1.0_f64 - cos_th))
 }
 
 #[cfg(test)]
@@ -100,34 +88,5 @@ mod tests {
         let (a, b, c) = (1.0, 2.0, 3.0);
         let solutions = solve_deg2_eq(a, b, c);
         assert_eq!(None, solutions);
-    }
-
-    #[test]
-    fn rotate_vectors() {
-        let v = glm::DVec3::new(0.0, 1.0, 0.0);
-        let k = glm::DVec3::new(0.0, 0.0, 1.0);
-        let v_rot = rotate_vector(&v, &k, 45.0_f64.to_radians());
-        assert_relative_eq!(
-            glm::DVec3::new(-2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0),
-            v_rot
-        );
-
-        let v = glm::DVec3::new(0.0, 1.0, 0.0);
-        let k = glm::DVec3::new(0.0, 0.0, 1.0);
-        let v_rot = rotate_vector(&v, &k, 90.0_f64.to_radians());
-        assert_relative_eq!(glm::DVec3::new(-1.0, 0.0, 0.0), v_rot);
-
-        let v = glm::DVec3::new(0.0, 1.0, 0.0);
-        let k = glm::DVec3::new(1.0, 0.0, 0.0);
-        let v_rot = rotate_vector(&v, &k, 45.0_f64.to_radians());
-        assert_relative_eq!(
-            glm::DVec3::new(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
-            v_rot
-        );
-
-        let v = glm::DVec3::new(0.0, 1.0, 0.0);
-        let k = glm::DVec3::new(1.0, 0.0, 0.0);
-        let v_rot = rotate_vector(&v, &k, 90.0_f64.to_radians());
-        assert_relative_eq!(glm::DVec3::new(0.0, 0.0, 1.0_f64), v_rot);
     }
 }

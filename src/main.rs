@@ -137,7 +137,7 @@ fn main() {
         position: glm::DVec3::new(0.0, 10.0, 00.0),
         direction: glm::DVec3::new(0.0, -10.0, 50.0),
         resolution: (800, 600),
-        rotation: 0.0_f64,
+        rotation: 0.0_f64.to_radians(),
         fov: FieldOfView::Horizontal(100.0_f64.to_radians()),
         focus_mode: FocusMode::FocalPlane {
             focal_distance: 50.0,
@@ -149,7 +149,7 @@ fn main() {
         position: glm::DVec3::new(0.0, 10.0, 0.0),
         direction: glm::DVec3::new(0.0, -10.0, 50.0),
         resolution: (800, 600),
-        rotation: 0.0_f64,
+        rotation: 0.0_f64.to_radians(),
         fov: FieldOfView::Horizontal(100.0_f64.to_radians()),
         focus_mode: FocusMode::PinHole,
     });

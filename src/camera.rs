@@ -22,7 +22,6 @@ use glm;
 use rand::{rngs::ThreadRng, Rng};
 use std::f64::consts::PI;
 
-use crate::algebra;
 use crate::light::Ray;
 
 #[derive(Debug, Clone, Copy)]
@@ -73,9 +72,9 @@ struct CoordinateSystem {
 #[derive(Default, Debug)]
 pub struct Camera {
     coordinate_system: CoordinateSystem, // Coordinate system (origin and base vectors)
-    rotation: f64,                       // Rotation, in the positive sense, around the facing axis
-    resolution: (u32, u32),              // Resolutions (width, height) in pixels
-    fov: FieldOfView,                    // Field of view (Horizontal or Vertical) in radians
+    rotation: f64, // Rotation [rad], in the positive sense, around the facing axis
+    resolution: (u32, u32), // Resolutions (width, height) in pixels
+    fov: FieldOfView, // Field of view (Horizontal or Vertical) in radians
     focus_mode: FocusMode,
 
     distance_to_plane: f64,
@@ -157,16 +156,16 @@ impl Camera {
 
         // Apply rotation
         if self.rotation != 0.0_f64 {
-            self.coordinate_system.u = algebra::rotate_vector(
+            self.coordinate_system.u = glm::rotate_vec3(
                 &self.coordinate_system.u,
-                &self.coordinate_system.w,
                 self.rotation,
+                &self.coordinate_system.w,
             );
             self.coordinate_system.u.normalize_mut();
-            self.coordinate_system.v = algebra::rotate_vector(
+            self.coordinate_system.v = glm::rotate_vec3(
                 &self.coordinate_system.v,
-                &self.coordinate_system.w,
                 self.rotation,
+                &self.coordinate_system.w,
             );
             self.coordinate_system.v.normalize_mut();
         }
