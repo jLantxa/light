@@ -62,23 +62,76 @@ fn closest_facing_solution((t1, t2): (f64, f64)) -> Option<f64> {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct Triangle {
+    pub va: glm::DVec3,
+    pub vb: glm::DVec3,
+    pub vc: glm::DVec3,
+    normal: glm::DVec3,
+}
+
+impl Triangle {
+    pub fn new(a: glm::DVec3, b: glm::DVec3, c: glm::DVec3) -> Self {
+        Self {
+            va: a,
+            vb: b,
+            vc: c,
+            normal: (c - a).cross(&(b - a)).normalize(),
+        }
+    }
+}
+
+impl Shape for Triangle {
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        let edge1 = self.vb - self.va;
+        let edge2 = self.vc - self.va;
+
+        let h = ray.direction.cross(&edge2);
+        let a = edge1.dot(&h);
+
+        if a.abs() < f64::EPSILON {
+            return None; // The ray is parallel to this triangle.
+        }
+
+        let f = 1.0 / a;
+        let s = ray.origin - self.va;
+        let u = f * s.dot(&h);
+
+        if u < 0.0 || u > 1.0 {
+            return None;
+        }
+
+        let q = s.cross(&edge1);
+        let v = f * ray.direction.dot(&q);
+
+        if v < 0.0 || u + v > 1.0 {
+            return None;
+        }
+
+        let t = f * edge2.dot(&q);
+
+        if t > f64::EPSILON {
+            let hit_point = ray.origin + t * ray.direction;
+            return Some(HitRecord {
+                ray_t: t,
+                point: hit_point,
+                normal: self.normal,
+            });
+        } else {
+            return None;
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Sphere {
-    center: glm::DVec3,
-    radius: f64,
+    pub center: glm::DVec3,
+    pub radius: f64,
 }
 
 impl Sphere {
     pub fn new(center: glm::DVec3, radius: f64) -> Self {
         Self { center, radius }
-    }
-
-    pub fn center(&self) -> glm::DVec3 {
-        self.center
-    }
-
-    pub fn radius(&self) -> f64 {
-        self.radius
     }
 
     pub fn normal(&self, intersection: &glm::DVec3, direction: &glm::DVec3) -> glm::DVec3 {
@@ -118,6 +171,37 @@ impl Shape for Sphere {
                 })
             }
         }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Plane {
+    pub position: glm::DVec3,
+    pub normal: glm::DVec3,
+}
+
+impl Shape for Plane {
+    fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
+        // Plane equation: (p - p0) . n = 0
+        // Ray equation: p = o + t * d
+        // Substituting ray equation into plane equation:
+        // (o + t * d - p0) . n = 0
+        // Solving for t: t = (p0 - o) . n / d . n
+
+        let denom = ray.direction.dot(&self.normal);
+        if denom.abs() > f64::EPSILON {
+            let p0_to_origin = self.position - ray.origin;
+            let t = p0_to_origin.dot(&self.normal) / denom;
+            if t >= 0.0 {
+                let hit_point = ray.origin + t * ray.direction;
+                return Some(HitRecord {
+                    ray_t: t,
+                    point: hit_point,
+                    normal: self.normal,
+                });
+            }
+        }
+        None
     }
 }
 
@@ -173,5 +257,83 @@ mod test {
 
         let hit = sphere.intersect(&ray);
         assert_eq!(hit, None);
+    }
+
+    #[test]
+    fn test_plane_intersection_hit() {
+        let plane = Plane {
+            position: glm::DVec3::new(0.0, 0.0, 0.0),
+            normal: glm::DVec3::new(0.0, 1.0, 0.0),
+        };
+
+        let ray = Ray {
+            origin: glm::DVec3::new(0.0, -1.0, 0.0),
+            direction: glm::DVec3::new(0.0, 1.0, 0.0),
+        };
+
+        let hit_record = plane.intersect(&ray);
+
+        assert!(hit_record.is_some());
+        let hit_record = hit_record.unwrap();
+        assert_eq!(hit_record.ray_t, 1.0);
+        assert_eq!(hit_record.point, glm::DVec3::new(0.0, 0.0, 0.0));
+        assert_eq!(hit_record.normal, glm::DVec3::new(0.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn test_plane_intersection_miss() {
+        let plane = Plane {
+            position: glm::DVec3::new(0.0, 0.0, 0.0),
+            normal: glm::DVec3::new(0.0, 1.0, 0.0),
+        };
+
+        let ray = Ray {
+            origin: glm::DVec3::new(0.0, 1.0, 0.0),
+            direction: glm::DVec3::new(0.0, 1.0, 0.0),
+        };
+
+        let hit_record = plane.intersect(&ray);
+
+        assert!(hit_record.is_none());
+    }
+
+    #[test]
+    fn test_triangle_intersection_hit() {
+        let triangle = Triangle::new(
+            glm::DVec3::new(0.0, 0.0, 0.0),
+            glm::DVec3::new(1.0, 0.0, 0.0),
+            glm::DVec3::new(0.0, 1.0, 0.0),
+        );
+
+        let ray = Ray {
+            origin: glm::DVec3::new(0.1, 0.1, -1.0),
+            direction: glm::DVec3::new(0.0, 0.0, 1.0),
+        };
+
+        let hit_record = triangle.intersect(&ray);
+
+        assert!(hit_record.is_some());
+        let hit_record = hit_record.unwrap();
+        assert!(hit_record.ray_t > 0.0);
+        assert_eq!(hit_record.point, glm::DVec3::new(0.1, 0.1, 0.0));
+        assert_eq!(hit_record.normal, triangle.normal);
+    }
+
+    #[test]
+    fn test_triangle_intersection_miss() {
+        let triangle = Triangle::new(
+            glm::DVec3::new(0.0, 0.0, 0.0),
+            glm::DVec3::new(1.0, 0.0, 0.0),
+            glm::DVec3::new(0.0, 1.0, 0.0),
+        );
+
+        let ray = Ray {
+            origin: glm::DVec3::new(1.0, 1.0, -1.0),
+            direction: glm::DVec3::new(0.0, 0.0, 1.0),
+        };
+
+        let hit_record = triangle.intersect(&ray);
+
+        assert!(hit_record.is_none());
     }
 }

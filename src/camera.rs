@@ -93,7 +93,7 @@ impl CoordinateSystem {
 impl Camera {
     pub fn new(config: &CameraConfig) -> Self {
         let mut camera = Self::default();
-        camera.config(config);
+        camera.config(config).expect("Couldn't configure camera");
 
         return camera;
     }
