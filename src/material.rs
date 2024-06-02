@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use glm::normalize;
 use rand::rngs::ThreadRng;
 
 use crate::color::Color;
@@ -30,6 +29,7 @@ pub struct Material {
 
 impl Material {
     pub fn bsdf(&self, normal: &glm::DVec3, vin: &glm::DVec3, vout: &glm::DVec3) -> Color {
+        // TODO
         self.color
     }
 
