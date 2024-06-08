@@ -24,7 +24,7 @@ use std::f64::consts::PI;
 
 use crate::light::Ray;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FieldOfView {
     Horizontal(f64),
     Vertical(f64),
@@ -36,7 +36,7 @@ impl Default for FieldOfView {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FocusMode {
     FocalPlane {
         focal_distance: f64, // [m]
@@ -51,7 +51,7 @@ impl Default for FocusMode {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct CameraConfig {
     pub position: glm::DVec3,
     pub direction: glm::DVec3,
@@ -59,6 +59,19 @@ pub struct CameraConfig {
     pub rotation: f64,
     pub fov: FieldOfView,
     pub focus_mode: FocusMode,
+}
+
+impl Default for CameraConfig {
+    fn default() -> Self {
+        Self {
+            position: glm::DVec3::zeros(),
+            direction: glm::DVec3::zeros(),
+            resolution: (800, 600),
+            rotation: 0.0_f64,
+            fov: FieldOfView::default(),
+            focus_mode: FocusMode::default(),
+        }
+    }
 }
 
 #[derive(Default, Debug)]
@@ -307,5 +320,16 @@ mod tests {
                 assert_relative_eq!(0.0, z);
             }
         }
+    }
+
+    #[test]
+    fn default_camera_config() {
+        let default_config = CameraConfig::default();
+        assert_eq!(default_config.position, glm::DVec3::zeros());
+        assert_eq!(default_config.direction, glm::DVec3::zeros());
+        assert_eq!(default_config.resolution, (800, 600));
+        assert_eq!(default_config.rotation, 0.0);
+        assert_eq!(default_config.fov, FieldOfView::default());
+        assert_eq!(default_config.focus_mode, FocusMode::default());
     }
 }

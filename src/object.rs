@@ -26,12 +26,6 @@ pub struct Object {
     pub material: Material,
 }
 
-impl Object {
-    pub fn intersect(&self, ray: &Ray) -> Option<HitRecord> {
-        self.shape.intersect(ray)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;

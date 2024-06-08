@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
 pub fn solve_deg2_eq(a: f64, b: f64, c: f64) -> Option<(f64, f64)> {
     if a != 0.0 {
         let discriminant: f64 = (b * b) - (4.0 * a * c);

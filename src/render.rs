@@ -60,7 +60,7 @@ fn get_closest_hit<'a>(objects: &'a Vec<Object>, ray: &Ray) -> Option<(HitRecord
     let mut obj = None;
 
     for object in objects {
-        let hit = object.intersect(&ray);
+        let hit = object.shape.intersect(&ray);
         if hit.is_none() {
             continue;
         }
