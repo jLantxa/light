@@ -17,9 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::light::Ray;
 use crate::material::Material;
-use crate::shape::{HitRecord, Shape};
+use crate::shape::{Shape};
 
 pub struct Object {
     pub shape: Box<dyn Shape + Sync>,
