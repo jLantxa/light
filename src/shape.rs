@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use glm;
 
 use crate::algebra;
 use crate::light::Ray;
@@ -97,7 +96,7 @@ impl Shape for Triangle {
         let s = ray.origin - self.va;
         let u = f * s.dot(&h);
 
-        if u < 0.0 || u > 1.0 {
+        if !(0.0..=1.0).contains(&u) {
             return None;
         }
 
@@ -112,13 +111,13 @@ impl Shape for Triangle {
 
         if t > f64::EPSILON {
             let hit_point = ray.origin + t * ray.direction;
-            return Some(HitRecord {
+            Some(HitRecord {
                 ray_t: t,
                 point: hit_point,
                 normal: self.normal,
-            });
+            })
         } else {
-            return None;
+            None
         }
     }
 }
@@ -136,7 +135,7 @@ impl Sphere {
 
     pub fn normal(&self, intersection: &glm::DVec3, direction: &glm::DVec3) -> glm::DVec3 {
         // -(d*n)n / |(d*n)n|
-        let surf_normal = &self.center - intersection;
+        let surf_normal = self.center - intersection;
         (direction.dot(&surf_normal) * surf_normal).normalize()
     }
 }
@@ -156,9 +155,7 @@ impl Shape for Sphere {
             None => None,
             Some(sols) => {
                 let t = closest_facing_solution(sols);
-                if t.is_none() {
-                    return None;
-                }
+                t?;
 
                 let t = t.unwrap();
                 let point = ray.point_at(t);

@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use glm;
 
 #[derive(Debug, PartialEq)]
 pub struct Ray {
@@ -28,7 +27,7 @@ pub struct Ray {
 impl Ray {
     pub fn new(origin: glm::DVec3, direction: glm::DVec3) -> Self {
         Self {
-            origin: origin,
+            origin,
             direction: direction.normalize(),
         }
     }

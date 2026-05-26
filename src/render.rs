@@ -36,7 +36,7 @@ pub fn render_geometry(scene: &Scene, camera: &Camera) -> RgbImage {
         .enumerate_pixels_mut()
         .par_bridge()
         .for_each(|(i, j, rgb)| {
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
 
             let closest_hit = get_closest_hit(&scene.objects, &ray);
@@ -44,7 +44,7 @@ pub fn render_geometry(scene: &Scene, camera: &Camera) -> RgbImage {
             // Indirect
             let color = match closest_hit {
                 None => scene.background_color,
-                Some((record, object)) => object.material.color,
+                Some((_record, object)) => object.material.color,
             };
 
             rgb[0] = color.x.as_();
@@ -60,14 +60,9 @@ fn get_closest_hit<'a>(objects: &'a Vec<Object>, ray: &Ray) -> Option<(HitRecord
     let mut obj = None;
 
     for object in objects {
-        let hit = object.shape.intersect(&ray);
-        if hit.is_none() {
-            continue;
-        }
-
-        let hit = hit.unwrap();
-        if hit.ray_t < closest_hit.ray_t {
-            let hit = hit;
+        if let Some(hit) = object.shape.intersect(ray)
+            && hit.ray_t < closest_hit.ray_t
+        {
             closest_hit = hit;
             obj = Some(object);
         }
@@ -113,11 +108,11 @@ impl PathTracer {
             .enumerate_pixels_mut()
             .par_bridge()
             .for_each(|(i, j, rgb)| {
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
                 let mut color = Color::zeros();
-                for n in 0..self.spp {
+                for _n in 0..self.spp {
                     let ray = camera.cast_ray(i, j, &mut rng).expect("Expected a Ray");
-                    color += self.trace_ray(&scene, &ray, 0, &mut rng);
+                    color += self.trace_ray(scene, &ray, 0, &mut rng);
                 }
 
                 rgb[0] += (color.x / self.spp as f64).min(255.0) as u8;
@@ -129,7 +124,7 @@ impl PathTracer {
     }
 
     fn trace_ray(&self, scene: &Scene, ray: &Ray, counter: u32, rng: &mut ThreadRng) -> Color {
-        let closest_hit = get_closest_hit(&scene.objects, &ray);
+        let closest_hit = get_closest_hit(&scene.objects, ray);
 
         // Indirect
         match closest_hit {

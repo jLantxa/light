@@ -17,9 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use glm;
 
-use rand::{rngs::ThreadRng, Rng};
+use rand::{rngs::ThreadRng, RngExt};
 use std::f64::consts::PI;
 
 use crate::light::Ray;
@@ -37,19 +36,16 @@ impl Default for FieldOfView {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Default)]
 pub enum FocusMode {
     FocalPlane {
         focal_distance: f64, // [m]
         aperture: f64,       // Aperture radius [m]
     },
+    #[default]
     PinHole,
 }
 
-impl Default for FocusMode {
-    fn default() -> Self {
-        Self::PinHole
-    }
-}
 
 #[derive(Debug)]
 pub struct CameraConfig {
@@ -107,7 +103,7 @@ impl Camera {
         let mut camera = Self::default();
         camera.config(config).expect("Couldn't configure camera");
 
-        return camera;
+        camera
     }
 
     pub fn position(&self) -> glm::DVec3 {
@@ -232,7 +228,7 @@ impl Camera {
             - (self.coordinate_system.u * ((sensor_width / 2.0) - (self.pixel_width / 2.0)))
             + (self.coordinate_system.v * ((sensor_height / 2.0) - (self.pixel_height / 2.0)));
 
-        return Ok(());
+        Ok(())
     }
 
     /// Cast a Ray to pixel (i, j)
@@ -283,7 +279,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);
@@ -308,7 +304,7 @@ mod tests {
         };
         let camera = Camera::new(&config);
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         for i in 0..800 {
             for j in 0..600 {
                 let ray = camera.cast_ray(i, j, &mut rng);

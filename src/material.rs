@@ -28,7 +28,7 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn bsdf(&self, normal: &glm::DVec3, vin: &glm::DVec3, vout: &glm::DVec3) -> Color {
+    pub fn bsdf(&self, _normal: &glm::DVec3, _vin: &glm::DVec3, _vout: &glm::DVec3) -> Color {
         // TODO
         self.color
     }
@@ -37,7 +37,7 @@ impl Material {
         &self,
         normal: &glm::DVec3,
         vin: &glm::DVec3,
-        rng: &mut ThreadRng,
+        _rng: &mut ThreadRng,
     ) -> glm::DVec3 {
         // TODO:
         vin - (2.0 * normal) * (normal.dot(vin))

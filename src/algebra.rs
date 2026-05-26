@@ -28,22 +28,22 @@ pub fn solve_deg2_eq(a: f64, b: f64, c: f64) -> Option<(f64, f64)> {
 
             // Sort solutions
             if x1 <= x2 {
-                return Some((x1, x2));
+                Some((x1, x2))
             } else {
-                return Some((x2, x1));
+                Some((x2, x1))
             }
         } else if discriminant == 0.0 {
             let x = -b / (2.0 * a);
-            return Some((x, x));
+            Some((x, x))
         } else {
-            return None;
+            None
         }
     } else {
         if b != 0.0 {
             let x = -c / b;
-            return Some((x, x));
+            Some((x, x))
         } else {
-            return None;
+            None
         }
     }
 }
